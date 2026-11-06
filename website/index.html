@@ -110,6 +110,16 @@
   .tag.ok { color: var(--mint); background: var(--mint-bg); }
   .tag.done { color: #fff; background: var(--mint); }
   .tag.skip { color: var(--muted); background: #EEF3F6; }
+  .tag.warn { color: #D4574B; background: var(--coral-bg); }
+  .file.left .name { color: var(--muted); }
+  .tabs { display: flex; gap: 6px; padding: 5px; margin: 0 0 14px; background: var(--foam); border-radius: 999px; overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { flex: 1 0 auto; font: 800 14.5px "Nunito", sans-serif; color: var(--ink-soft); background: transparent; border: 0; border-radius: 999px; padding: 9px 16px; cursor: pointer; white-space: nowrap; transition: background-color .2s, color .2s, box-shadow .2s; }
+  .tab[aria-selected="true"] { background: #fff; color: var(--deep); box-shadow: 0 2px 8px rgba(31,111,168,.15); }
+  .tab:focus-visible { outline: 3px solid var(--aqua); outline-offset: 1px; }
+  .story { margin: 0 6px 14px; color: var(--ink-soft); font-size: 15px; }
+  .hint { margin: 12px 6px 0; padding: 10px 14px; border-radius: 14px; background: var(--sun-bg); color: #7A5A1A; font-size: 14px; font-weight: 600; }
+  .hint[hidden] { display: none; }
   .swap { display: inline-block; transition: opacity .2s var(--ease-out), transform .2s var(--ease-out), filter .2s; }
   .swap.out { opacity: 0; transform: translateY(-5px); filter: blur(2px); }
   .demo-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 6px 2px; flex-wrap: wrap; }
@@ -183,8 +193,10 @@
     .demo { padding: 14px; border-radius: 22px; }
     .file { grid-template-columns: 34px minmax(0,1fr) auto; gap: 10px; padding: 9px 10px; }
     .file .thumb { width: 34px; height: 34px; }
-    .file .arrow, .file .tag { display: none; }
+    .file .arrow { display: none; }
+    .file .name { grid-column: 2 / 4; grid-row: 1; }
     .file .new { grid-column: 2; grid-row: 2; font-size: 13.5px; }
+    .file .tag { grid-column: 3; grid-row: 2; font-size: 11.5px; padding: 3px 8px; }
     .file .new:not(:empty)::before { content: "→ "; color: var(--aqua); }
     .file .thumb { grid-row: span 2; }
     .support { padding: 44px 20px; border-radius: 28px; }
@@ -256,10 +268,17 @@
   <div class="wrap demo-wrap">
     <div class="demo">
       <div class="demo-head">
-        <div class="demo-title"><img src="icon.png" alt="">Beach trip photos</div>
+        <div class="demo-title"><img src="icon.png" alt=""><span id="folder">Holiday photos</span></div>
         <label class="toggle"><input type="checkbox" id="pad" checked><span class="track"></span>Add zeros (01, 02 …)</label>
       </div>
+      <div class="tabs" role="tablist" aria-label="Example folders">
+        <button class="tab" role="tab" data-i="0">🏖️ Holiday photos</button>
+        <button class="tab" role="tab" data-i="1">📄 Scanned pages</button>
+        <button class="tab" role="tab" data-i="2">🧩 Tricky folder</button>
+      </div>
+      <p class="story" id="story"></p>
       <div class="files" id="files"></div>
+      <p class="hint" id="hint" hidden></p>
       <div class="demo-foot">
         <span class="status" id="status" aria-live="polite"></span>
         <span class="btns">
@@ -268,7 +287,7 @@
         </span>
       </div>
     </div>
-    <p class="caption">Try it here: press <b>Rename</b>, then <b>Undo</b>.</p>
+    <p class="caption">Try it here: pick a folder, switch zeros on and off, then press <b>Rename</b> and <b>Undo</b>. It works the same way as the real app.</p>
   </div>
 
   <section id="features">
@@ -364,39 +383,131 @@
 
 <script>
   (function () {
-    var files = [['beach trip (1).jpg', 1], ['beach trip (2).jpg', 2], ['beach trip (3).jpg', 3], ['beach trip (4).jpg', 4], ['beach trip (12).jpg', 12], ['packing list.txt', null]];
-    var tints = ['t-sea', 't-lilac', 't-mint', 't-sun', 't-coral', 't-sea'];
-    var list = document.getElementById('files'), status = document.getElementById('status');
-    var go = document.getElementById('go'), undo = document.getElementById('undo'), pad = document.getElementById('pad');
-    var renamed = false;
-    var rows = files.map(function (f, i) {
-      var r = document.createElement('div'); r.className = 'file';
-      r.innerHTML = '<span class="thumb ' + (f[1] ? tints[i] : 't-skip') + '" style="' + (f[1] ? '' : 'background:#EEF3F6;color:#7E98AC') + '"><svg><use href="#' + (f[1] ? 'i-img' : 'i-doc') + '"/></svg></span>' +
-        '<span class="name"><span class="swap"></span></span><span class="arrow" aria-hidden="true">→</span><span class="new"></span><span class="tag"></span>';
-      list.appendChild(r); return r;
-    });
-    function newName(f) { if (!f[1]) return ''; var n = String(f[1]); if (pad.checked && n.length < 2) n = '0' + n; return n + f[0].slice(f[0].lastIndexOf('.')); }
+    // Same rules as the real app (app/TidyTide.ps1, Update-Preview):
+    // only names ending in "(number)" are renamed; zeros pad to the longest number;
+    // two files with the same new name, or a new name that already exists, are left alone.
+    var folders = [
+      { name: 'Holiday photos',
+        story: 'You selected your holiday photos and renamed them “Summer 2026”. Windows added a number in brackets to each one.',
+        files: ['Summer 2026 (1).jpg', 'Summer 2026 (2).jpg', 'Summer 2026 (3).jpg', 'Summer 2026 (4).jpg', 'Summer 2026 (10).jpg', 'Summer 2026 (11).jpg', 'Summer 2026 (12).jpg', 'cover photo.jpg'] },
+      { name: 'Scanned pages',
+        story: 'Five pages straight from the scanner. You just want them as 1 to 5.',
+        files: ['Scan (1).pdf', 'Scan (2).pdf', 'Scan (3).pdf', 'Scan (4).pdf', 'Scan (5).pdf', 'Contract.docx'] },
+      { name: 'Tricky folder',
+        story: 'Some files can’t be renamed safely. Tidy Tide leaves them alone and tells you why. It never overwrites anything.',
+        files: ['Cat (1).png', 'Beach (2).jpg', 'Dog (2).jpg', 'Notes (3).txt', 'Party (4).jpg', '3.txt', 'photo 5.jpg', 'Copy of report.docx'] }
+    ];
+    var tints = ['t-sea', 't-lilac', 't-mint', 't-sun', 't-coral'];
+    var imgExt = /\.(jpe?g|png|gif|webp|heic)$/i;
+    var pattern = /^.*?\s*\((\d+)\)$/;
+    var TAG = {
+      ready: ['ok', 'Ready'], done: ['done', '✓ Renamed'], none: ['skip', 'No (number)'],
+      dup: ['warn', 'Same number twice'], taken: ['warn', 'Name already taken']
+    };
+
+    var $ = function (id) { return document.getElementById(id); };
+    var list = $('files'), status = $('status'), go = $('go'), undo = $('undo'), pad = $('pad'),
+        story = $('story'), hint = $('hint'), folderName = $('folder');
+    var tabs = [].slice.call(document.querySelectorAll('.tab'));
+    var current = 0, renamed = false, rows = [], plan = [];
+
+    function makePlan(names) {
+      var items = names.map(function (n) {
+        var dot = n.lastIndexOf('.'), base = dot > 0 ? n.slice(0, dot) : n, ext = dot > 0 ? n.slice(dot) : '';
+        var m = base.match(pattern), num = null;
+        if (m) { num = m[1].replace(/^0+/, '') || '0'; }
+        return { name: n, ext: ext, num: num, code: num ? 'ready' : 'none', target: '' };
+      });
+      var width = 0;
+      if (pad.checked) items.forEach(function (r) { if (r.num && r.num.length > width) width = r.num.length; });
+      var counts = {}, existing = {};
+      names.forEach(function (n) { existing[n.toLowerCase()] = true; });
+      items.forEach(function (r) {
+        if (r.code !== 'ready') return;
+        var n = r.num; while (n.length < width) n = '0' + n;
+        r.target = n + r.ext;
+        counts[r.target.toLowerCase()] = (counts[r.target.toLowerCase()] || 0) + 1;
+      });
+      items.forEach(function (r) {
+        if (r.code !== 'ready') return;
+        if (counts[r.target.toLowerCase()] > 1) r.code = 'dup';
+        else if (existing[r.target.toLowerCase()]) r.code = 'taken';
+      });
+      items.sort(function (a, b) {
+        var ka = a.num ? ('00000000000000000000' + a.num).slice(-20) : '~', kb = b.num ? ('00000000000000000000' + b.num).slice(-20) : '~';
+        return ka < kb ? -1 : ka > kb ? 1 : a.name.localeCompare(b.name);
+      });
+      return { items: items, width: width };
+    }
+
+    function build() {
+      list.innerHTML = '';
+      var p = makePlan(folders[current].files), t = 0;
+      rows = p.items.map(function (r) {
+        var el = document.createElement('div');
+        var tint = r.code === 'ready' ? tints[t++ % tints.length] : '';
+        el.className = 'file';
+        el.innerHTML = '<span class="thumb ' + tint + '"' + (tint ? '' : ' style="background:#EEF3F6;color:#7E98AC"') + '><svg><use href="#' + (imgExt.test(r.name) ? 'i-img' : 'i-doc') + '"/></svg></span>' +
+          '<span class="name"><span class="swap"></span></span><span class="arrow" aria-hidden="true">→</span><span class="new"></span><span class="tag"></span>';
+        list.appendChild(el);
+        return el;
+      });
+      render(false);
+    }
+
     function setText(el, text, animate) {
       if (!animate || el.textContent === text) { el.textContent = text; return; }
       el.classList.add('out');
       setTimeout(function () { el.textContent = text; el.classList.remove('out'); }, 170);
     }
+
     function render(animate) {
-      files.forEach(function (f, i) {
-        var c = rows[i].children, nn = newName(f);
-        setText(c[1].firstChild, renamed && nn ? nn : f[0], animate);
-        c[2].style.opacity = renamed || !nn ? 0 : 1;
-        c[3].textContent = renamed ? '' : nn;
-        c[4].className = 'tag ' + (!nn ? 'skip' : renamed ? 'done' : 'ok');
-        c[4].textContent = !nn ? 'Left alone' : renamed ? '✓ Renamed' : 'Ready';
+      var p = makePlan(folders[current].files), ready = 0, left = 0;
+      plan = p.items;
+      plan.forEach(function (r, i) {
+        var c = rows[i].children, ok = r.code === 'ready';
+        if (ok) ready++; else left++;
+        rows[i].classList.toggle('left', !ok);
+        setText(c[1].firstChild, renamed && ok ? r.target : r.name, animate);
+        c[2].style.opacity = ok && !renamed ? 1 : 0;
+        c[3].textContent = ok && !renamed ? r.target : '';
+        var tag = TAG[ok && renamed ? 'done' : r.code];
+        c[4].className = 'tag ' + tag[0];
+        c[4].textContent = tag[1];
       });
-      status.textContent = renamed ? '✨ 5 files tidied!' : '5 files ready · 1 left alone';
-      go.disabled = renamed; undo.disabled = !renamed; pad.disabled = renamed;
+      var leftText = left ? ' · ' + left + ' left alone' : '';
+      status.textContent = renamed ? '✨ ' + ready + ' files tidied' + leftText : ready + ' files ready' + leftText;
+
+      var nums = plan.filter(function (r) { return r.code === 'ready'; }).map(function (r) { return r.num; });
+      var longest = nums.reduce(function (w, n) { return Math.max(w, n.length); }, 0);
+      if (!pad.checked && longest > 1 && !renamed) {
+        var sorted = nums.slice().sort().join(', ');
+        hint.textContent = 'Without zeros, some apps list these as ' + sorted + '. Switch zeros on to keep them in order.';
+        hint.hidden = false;
+      } else hint.hidden = true;
+
+      go.disabled = renamed || ready === 0; undo.disabled = !renamed; pad.disabled = renamed;
     }
+
+    function select(i) {
+      current = i; renamed = false;
+      tabs.forEach(function (t, k) { t.setAttribute('aria-selected', k === i ? 'true' : 'false'); t.tabIndex = k === i ? 0 : -1; });
+      folderName.textContent = folders[i].name;
+      story.textContent = folders[i].story;
+      build();
+    }
+
+    tabs.forEach(function (t, k) {
+      t.addEventListener('click', function () { select(k); });
+      t.addEventListener('keydown', function (e) {
+        var d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+        if (d) { var n = (k + d + tabs.length) % tabs.length; select(n); tabs[n].focus(); }
+      });
+    });
     go.addEventListener('click', function () { renamed = true; render(true); });
     undo.addEventListener('click', function () { renamed = false; render(true); });
     pad.addEventListener('change', function () { render(false); });
-    render(false);
+    select(0);
   })();
 </script>
 </body>

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tidy Tide: clean up (1) (2) (3) file names on Windows</title>
+<meta name="description" content="A small, free Windows app that turns photo (12).jpg into 12.jpg. Preview every change, rename in one click, undo if you need to.">
+<meta property="og:title" content="Tidy Tide">
+<meta property="og:description" content="A small, free Windows app that turns photo (12).jpg into 12.jpg.">
+<meta property="og:image" content="icon.png">
+<meta name="theme-color" content="#0A4D7C">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" href="icon.png" type="image/png">
+<link rel="apple-touch-icon" href="icon.png">
+<style>
+  :root {
+    --deep: #0A4D7C; --sea: #1C8FC7; --sea-hi: #2AA3DB; --aqua: #4FC3E8;
+    --foam: #EAF6FB; --mist: #D6EEF8; --row-alt: #F4FAFD;
+    --ink: #12324A; --muted: #4F6B80; --gray: #8AA3B5; --teal: #12917F; --coral: #E07A5F;
+    --radius: 14px;
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; color: var(--ink); background: #fff;
+    font: 17px/1.6 "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+  }
+  a { color: var(--sea); }
+  code, .mono { font-family: "Cascadia Code", Consolas, ui-monospace, monospace; font-size: .92em; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---------- hero ---------- */
+  .hero {
+    position: relative; color: #fff; overflow: hidden;
+    background: linear-gradient(120deg, var(--deep) 0%, var(--sea) 55%, var(--aqua) 100%);
+    padding: 28px 0 150px;
+  }
+  .nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .brand { display: flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; font-weight: 600; font-size: 18px; }
+  .brand img { width: 34px; height: 34px; }
+  .nav-links { display: flex; gap: 22px; }
+  .nav-links a { color: rgba(255,255,255,.88); text-decoration: none; font-size: 15px; }
+  .nav-links a:hover { color: #fff; }
+  .hero-body { display: grid; grid-template-columns: 1fr; gap: 40px; margin-top: 64px; text-align: center; }
+  .hero h1 { font-size: clamp(38px, 6vw, 62px); line-height: 1.05; margin: 0 0 18px; font-weight: 600; letter-spacing: -0.02em; text-wrap: balance; }
+  .hero h1 .mono { font-size: .82em; background: rgba(255,255,255,.16); padding: 0 .25em; border-radius: 8px; }
+  .lede { font-size: 20px; max-width: 620px; margin: 0 auto 32px; color: rgba(255,255,255,.92); text-wrap: pretty; }
+  .ctas { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px; padding: 14px 26px; border-radius: 999px;
+    font-weight: 600; font-size: 16px; text-decoration: none; border: 0; cursor: pointer;
+    transition: transform .16s var(--ease-out), background-color .2s, box-shadow .2s;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn-primary { background: #fff; color: var(--deep); box-shadow: 0 8px 24px rgba(5,40,70,.25); }
+  .btn-ghost { background: rgba(255,255,255,.14); color: #fff; box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.5); }
+  @media (hover: hover) and (pointer: fine) {
+    .btn-primary:hover { background: var(--foam); }
+    .btn-ghost:hover { background: rgba(255,255,255,.22); }
+  }
+  .btn svg { width: 18px; height: 18px; }
+  .small-note { margin-top: 14px; font-size: 14px; color: rgba(255,255,255,.78); }
+  .bubble { position: absolute; border: 2.5px solid rgba(255,255,255,.55); border-radius: 50%; }
+  .waves { position: absolute; left: 0; right: 0; bottom: -1px; width: 100%; height: 120px; display: block; }
+
+  /* ---------- app mock ---------- */
+  .mock-wrap { margin-top: -110px; position: relative; z-index: 2; }
+  .window {
+    max-width: 820px; margin: 0 auto; border-radius: 12px; overflow: hidden; background: var(--foam);
+    box-shadow: 0 30px 70px rgba(10,50,80,.28), 0 0 0 1px rgba(10,77,124,.12);
+  }
+  .titlebar { display: flex; align-items: center; gap: 8px; background: #fff; padding: 8px 12px; font-size: 13px; color: #333; }
+  .titlebar img { width: 16px; height: 16px; }
+  .titlebar .ctl { margin-left: auto; display: flex; gap: 22px; color: #555; font-size: 14px; letter-spacing: 2px; }
+  .app-head { position: relative; padding: 18px 28px 40px; color: #fff; background: linear-gradient(110deg, var(--deep), var(--sea) 60%, var(--aqua)); overflow: hidden; }
+  .app-head h3 { margin: 0; font-size: 26px; font-weight: 600; }
+  .app-head p { margin: 0; font-size: 14px; opacity: .9; }
+  .app-head svg { position: absolute; left: 0; bottom: -1px; width: 100%; height: 28px; }
+  .toolbar { display: flex; gap: 10px; padding: 14px 24px 10px; flex-wrap: wrap; }
+  .pill { padding: 7px 18px; border-radius: 999px; font-size: 14px; font-weight: 600; background: var(--sea-hi); color: #fff; }
+  .pill.dark { background: var(--sea); }
+  .pill.light { background: var(--mist); color: var(--deep); }
+  .table { margin: 0 24px; background: #fff; border-radius: 8px; overflow: hidden; font-size: 14px; }
+  .row { display: grid; grid-template-columns: 1.3fr 1fr 1.3fr; gap: 10px; padding: 7px 14px; align-items: center; }
+  .row:nth-child(even) { background: var(--row-alt); }
+  .row.head { background: var(--mist); color: var(--deep); font-weight: 600; font-size: 13px; }
+  .row .new { color: var(--sea); font-weight: 600; }
+  .row .ok { color: var(--teal); } .row .skip { color: var(--gray); }
+  .cell { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .swap { display: inline-block; transition: opacity .22s var(--ease-out), transform .22s var(--ease-out); }
+  .swap.out { opacity: 0; transform: translateY(-4px); }
+  .app-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 24px 18px; flex-wrap: wrap; }
+  .status { font-size: 14px; font-weight: 600; color: var(--deep); }
+  .app-foot .btns { display: flex; gap: 10px; }
+  .app-btn { font: inherit; font-size: 14px; font-weight: 600; padding: 8px 26px; border-radius: 999px; border: 0; cursor: pointer; transition: transform .16s var(--ease-out), opacity .2s; }
+  .app-btn:active:not(:disabled) { transform: scale(.96); }
+  .app-btn.go { background: var(--deep); color: #fff; }
+  .app-btn.undo { background: var(--mist); color: var(--deep); }
+  .app-btn:disabled { opacity: .45; cursor: default; }
+  .mock-caption { text-align: center; color: var(--muted); font-size: 14px; margin-top: 14px; }
+
+  /* ---------- sections ---------- */
+  section { padding: 84px 0 0; }
+  h2 { font-size: clamp(28px, 4vw, 38px); margin: 0 0 12px; letter-spacing: -0.01em; font-weight: 600; text-wrap: balance; }
+  .section-lede { color: var(--muted); max-width: 640px; margin: 0 0 36px; text-wrap: pretty; }
+  .problem { display: grid; grid-template-columns: 1fr auto 1fr; gap: 20px; align-items: center; }
+  .namebox { background: var(--row-alt); border: 1px solid var(--mist); border-radius: var(--radius); padding: 18px 22px; }
+  .namebox .label { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--gray); margin-bottom: 8px; }
+  .namebox ul { list-style: none; padding: 0; margin: 0; }
+  .namebox li { padding: 3px 0; }
+  .namebox.after li { color: var(--sea); font-weight: 600; }
+  .arrow { font-size: 28px; color: var(--sea); }
+  .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .card { background: #fff; border: 1px solid var(--mist); border-radius: var(--radius); padding: 22px; }
+  .card .ic { width: 40px; height: 40px; border-radius: 12px; background: var(--foam); color: var(--sea); display: grid; place-items: center; margin-bottom: 12px; }
+  .card .ic svg { width: 22px; height: 22px; }
+  .card h3 { margin: 0 0 6px; font-size: 18px; }
+  .card p { margin: 0; color: var(--muted); font-size: 15.5px; }
+  .steps { counter-reset: s; list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; max-width: 760px; }
+  .steps li { counter-increment: s; position: relative; padding: 16px 20px 16px 68px; background: var(--row-alt); border-radius: var(--radius); border: 1px solid var(--mist); }
+  .steps li::before { content: counter(s); position: absolute; left: 18px; top: 14px; width: 32px; height: 32px; border-radius: 50%; background: var(--sea); color: #fff; font-weight: 600; display: grid; place-items: center; }
+  .callout { margin-top: 18px; max-width: 760px; padding: 14px 18px; border-left: 4px solid var(--aqua); background: var(--foam); border-radius: 0 10px 10px 0; color: var(--muted); font-size: 15.5px; }
+  .license-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .license-grid ul { margin: 0; padding-left: 20px; }
+  .license-grid li { margin: 6px 0; color: var(--muted); }
+  .license-grid li strong { color: var(--ink); }
+  .fine { font-size: 14px; color: var(--gray); margin-top: 18px; }
+
+  /* ---------- footer ---------- */
+  footer { margin-top: 96px; position: relative; color: rgba(255,255,255,.9); background: var(--deep); padding: 70px 0 34px; text-align: center; font-size: 15px; }
+  footer svg { position: absolute; top: -1px; left: 0; width: 100%; height: 60px; }
+  footer a { color: #fff; }
+  footer .made { font-size: 16px; }
+  footer .sub { margin-top: 8px; font-size: 13.5px; opacity: .75; }
+
+  @media (max-width: 760px) {
+    .nav-links { display: none; }
+    .features, .license-grid { grid-template-columns: 1fr; }
+    .problem { grid-template-columns: 1fr; }
+    .arrow { transform: rotate(90deg); justify-self: center; }
+    .row { grid-template-columns: 1.2fr 1fr; }
+    .row > :nth-child(3) { display: none; }
+    .titlebar .ctl { display: none; }
+    .table { margin: 0 12px; font-size: 13px; }
+    .row { padding: 7px 10px; }
+    .toolbar, .app-foot { padding-left: 12px; padding-right: 12px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .swap, .btn, .app-btn { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <span class="bubble" style="width:46px;height:46px;right:14%;top:120px"></span>
+  <span class="bubble" style="width:22px;height:22px;right:9%;top:96px"></span>
+  <span class="bubble" style="width:16px;height:16px;right:19%;top:170px"></span>
+  <span class="bubble" style="width:30px;height:30px;left:8%;top:240px;opacity:.6"></span>
+  <div class="wrap">
+    <nav class="nav">
+      <a class="brand" href="/"><img src="icon.png" alt="">Tidy Tide</a>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#install">Install</a>
+        <a href="#licence">Licence</a>
+        <a href="https://github.com/inomisay/TidyTide">GitHub</a>
+      </div>
+    </nav>
+    <div class="hero-body">
+      <div>
+        <h1>Turn <span class="mono">photo&nbsp;(12).jpg</span><br>into <span class="mono">12.jpg</span></h1>
+        <p class="lede">A small, free Windows app that tidies the <code>(1)</code> <code>(2)</code> <code>(3)</code> names Windows gives your files. You see every change first, rename them all in one click, and can undo it.</p>
+        <div class="ctas">
+          <a class="btn btn-primary" href="https://github.com/inomisay/TidyTide/archive/refs/heads/main.zip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 20h16"/></svg>
+            Download for Windows
+          </a>
+          <a class="btn btn-ghost" href="https://github.com/inomisay/TidyTide">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2.1c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 6 .4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .5z"/></svg>
+            View source
+          </a>
+        </div>
+        <p class="small-note">Windows 10 &amp; 11 · Free and open source (GPL-3.0) · Nothing else to install</p>
+      </div>
+    </div>
+  </div>
+  <svg class="waves" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0,70 C240,20 480,110 720,70 C960,30 1200,100 1440,60 L1440,120 L0,120 Z" fill="rgba(255,255,255,.35)"/>
+    <path d="M0,90 C260,55 520,120 760,90 C1000,60 1220,110 1440,85 L1440,120 L0,120 Z" fill="#fff"/>
+  </svg>
+</header>
+
+<main>
+  <div class="wrap mock-wrap">
+    <div class="window" role="img" aria-label="The Tidy Tide window, showing a list of files with their new names">
+      <div class="titlebar"><img src="icon.png" alt="">Tidy Tide<span class="ctl">&#8212; &#9633; &#10005;</span></div>
+      <div class="app-head">
+        <h3>Tidy Tide</h3>
+        <p>Turns photo (12).jpg into 12.jpg</p>
+        <svg viewBox="0 0 800 28" preserveAspectRatio="none" aria-hidden="true"><path d="M0,14 C200,0 400,28 600,12 C700,4 760,10 800,14 L800,28 L0,28 Z" fill="rgba(255,255,255,.35)"/><path d="M0,20 C220,10 420,30 620,18 C720,12 770,18 800,20 L800,28 L0,28 Z" fill="#EAF6FB"/></svg>
+      </div>
+      <div class="toolbar"><span class="pill">+ Add files</span><span class="pill dark">+ Add folder</span><span class="pill light">Clear</span></div>
+      <div class="table" id="demo-table">
+        <div class="row head"><span>Current name</span><span>New name</span><span>Status</span></div>
+      </div>
+      <div class="app-foot">
+        <span class="status" id="demo-status"></span>
+        <span class="btns">
+          <button class="app-btn undo" id="demo-undo" disabled>Undo</button>
+          <button class="app-btn go" id="demo-go">Rename</button>
+        </span>
+      </div>
+    </div>
+    <p class="mock-caption">Try it: press <strong>Rename</strong>, then <strong>Undo</strong>.</p>
+  </div>
+
+  <section>
+    <div class="wrap">
+      <h2>The problem</h2>
+      <p class="section-lede">Select a bunch of files in Windows and rename them all at once, and you get <code>photo (1)</code>, <code>photo (2)</code>, <code>photo (3)</code>… If you only wanted <code>1</code>, <code>2</code>, <code>3</code>, you're stuck fixing every name by hand. Tidy Tide does it for you.</p>
+      <div class="problem">
+        <div class="namebox"><div class="label">Before</div><ul class="mono"><li>photo (1).jpg</li><li>photo (2).jpg</li><li>photo (10).jpg</li><li>(7).png</li></ul></div>
+        <div class="arrow" aria-hidden="true">&#8594;</div>
+        <div class="namebox after"><div class="label">After</div><ul class="mono"><li>01.jpg</li><li>02.jpg</li><li>10.jpg</li><li>7.png</li></ul></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="wrap">
+      <h2>What it does</h2>
+      <p class="section-lede">It does one job and it's careful about it.</p>
+      <div class="features">
+        <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h10M4 17h7"/></svg></div><h3>Number becomes the name</h3><p><code>photo (12).jpg</code> becomes <code>12.jpg</code>, and <code>(7).png</code> becomes <code>7.png</code>.</p></div>
+        <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></div><h3>Preview first</h3><p>You see every change before it happens. Nothing is renamed until you press Rename.</p></div>
+        <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></div><h3>Undo</h3><p>Changed your mind? Undo puts the last rename back the way it was.</p></div>
+        <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h4M3 12h4M3 18h4M11 6h10M11 12h10M11 18h10"/></svg></div><h3>Sorts properly</h3><p>Can add zeros in front (<code>01</code>, <code>02</code> … <code>10</code>) so every app lists the files in the right order.</p></div>
+        <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z"/></svg></div><h3>Never overwrites</h3><p>Skips files with no number in brackets, numbers used twice, and names that are already taken.</p></div>
+        <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div><h3>Right-click Send to</h3><p>Right-click files or a folder in File Explorer and choose <strong>Send to → Tidy Tide</strong>.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="install">
+    <div class="wrap">
+      <h2>Install</h2>
+      <p class="section-lede">Takes about a minute. Works on Windows 10 and 11 with the PowerShell that's already built in. You don't need to install anything else.</p>
+      <ol class="steps">
+        <li><a href="https://github.com/inomisay/TidyTide/archive/refs/heads/main.zip"><strong>Download the ZIP</strong></a> and unzip it.</li>
+        <li>Double-click <strong>Install Tidy Tide.bat</strong>.</li>
+        <li>Read the licence in the window that opens, then click <strong>Install</strong>.</li>
+        <li>Open Tidy Tide from the desktop icon or the Start menu.</li>
+      </ol>
+      <p class="callout">If Windows shows <em>“Windows protected your PC”</em>, click <strong>More info → Run anyway</strong>. Windows shows this for scripts downloaded from the internet. On Windows 11, <strong>Send to</strong> is under <strong>Show more options</strong>. To remove Tidy Tide, run <strong>Uninstall Tidy Tide.bat</strong>.</p>
+    </div>
+  </section>
+
+  <section id="licence">
+    <div class="wrap">
+      <h2>Free and open source</h2>
+      <p class="section-lede">Copyright © 2026 Yasamin Valishariatpanahi. Tidy Tide is released under the <a href="https://github.com/inomisay/TidyTide/blob/main/LICENSE">GNU General Public License v3.0</a>. Here's what that means:</p>
+      <div class="license-grid">
+        <div class="card"><h3>You can</h3><ul>
+          <li><strong>Use it</strong> for anything, for free, including at work.</li>
+          <li><strong>Read and change</strong> the code.</li>
+          <li><strong>Share copies</strong>, changed or not, for free or for money.</li>
+        </ul></div>
+        <div class="card"><h3>If you share it, you must</h3><ul>
+          <li><strong>Give people the source code</strong> under the same GPL-3.0 licence.</li>
+          <li><strong>Keep</strong> the copyright and licence notices, and say what you changed.</li>
+          <li><strong>Not</strong> close the source or re-licence it.</li>
+        </ul></div>
+      </div>
+      <p class="fine">Tidy Tide comes with no warranty. This is a plain-language summary, not legal advice. The <a href="https://github.com/inomisay/TidyTide/blob/main/LICENSE">full licence text</a> is what counts.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <svg viewBox="0 0 1440 60" preserveAspectRatio="none" aria-hidden="true"><path d="M0,30 C240,60 480,0 720,30 C960,60 1200,10 1440,35 L1440,0 L0,0 Z" fill="#fff"/></svg>
+  <div class="wrap">
+    <div class="made">Made by Yasamin Valishariatpanahi · <a href="https://github.com/inomisay">github.com/inomisay</a></div>
+    <div class="sub">Tidy Tide is free software under the <a href="https://github.com/inomisay/TidyTide/blob/main/LICENSE">GPL-3.0</a> licence.</div>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var files = [
+      ['beach trip (1).jpg', '01.jpg'], ['beach trip (2).jpg', '02.jpg'], ['beach trip (3).jpg', '03.jpg'],
+      ['beach trip (4).jpg', '04.jpg'], ['beach trip (12).jpg', '12.jpg'], ['notes.txt', null]
+    ];
+    var table = document.getElementById('demo-table');
+    var status = document.getElementById('demo-status');
+    var go = document.getElementById('demo-go');
+    var undo = document.getElementById('demo-undo');
+    var rows = files.map(function (f) {
+      var r = document.createElement('div'); r.className = 'row';
+      r.innerHTML = '<span class="cell mono"><span class="swap"></span></span><span class="cell new mono"></span><span class="cell"></span>';
+      table.appendChild(r);
+      return r;
+    });
+    var renamed = false;
+    function setText(el, text, animate) {
+      if (!animate) { el.textContent = text; return; }
+      el.classList.add('out');
+      setTimeout(function () { el.textContent = text; el.classList.remove('out'); }, 180);
+    }
+    function render(animate) {
+      files.forEach(function (f, i) {
+        var c = rows[i].children;
+        setText(c[0].firstChild, renamed && f[1] ? f[1] : f[0], animate);
+        c[1].textContent = renamed ? '' : (f[1] || '');
+        c[2].className = 'cell ' + (f[1] ? 'ok' : 'skip');
+        c[2].textContent = renamed ? (f[1] ? '✓ Renamed' : '• Left alone') : (f[1] ? '✓ Ready' : '• No (number), left alone');
+      });
+      status.textContent = renamed ? '5 files renamed' : '5 files ready, 1 will be left alone';
+      go.disabled = renamed; undo.disabled = !renamed;
+    }
+    go.addEventListener('click', function () { renamed = true; render(true); });
+    undo.addEventListener('click', function () { renamed = false; render(true); });
+    render(false);
+  })();
+</script>
+</body>
+</html>

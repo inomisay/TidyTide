@@ -135,7 +135,7 @@ function Set-ModernWindow($form) {
 }
 
 # Rounded "pill" button. Styles: primary (deep blue), accent (sea blue), soft (light blue), ghost (text only).
-function New-PillButton([string]$text, [string]$style, [int]$width) {
+function New-PillButton([string]$text, [string]$style, [int]$width, [int]$height = 40) {
     $styles = @{
         primary = @{ Back = $cDeep;  Hover = (C '#0D5E96'); Fore = $cWhite }
         accent  = @{ Back = $cSea;   Hover = $cSeaHi;       Fore = $cWhite }
@@ -144,7 +144,7 @@ function New-PillButton([string]$text, [string]$style, [int]$width) {
     }
     $b = New-Object System.Windows.Forms.Button
     $b.Text = $text
-    $b.Size = New-Object System.Drawing.Size((P $width), (P 40))
+    $b.Size = New-Object System.Drawing.Size((P $width), (P $height))
     $b.FlatStyle = 'Flat'
     $b.FlatAppearance.BorderSize = 0
     $b.Cursor = [System.Windows.Forms.Cursors]::Hand

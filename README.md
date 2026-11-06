@@ -20,7 +20,7 @@ When you select a bunch of files in Windows and rename them all at once, Windows
 Drop the files in and check the preview. Then press **Rename**. If something looks wrong, press **Undo**.
 
 <p align="center">
-  <img src="assets/screenshots/app.png" width="760" alt="Tidy Tide showing a preview: Summer 2026 (1).jpg becomes 01.jpg, Summer 2026 (2).jpg becomes 02.jpg, and so on, each marked Ready">
+  <img src="assets/screenshots/app.png" width="560" alt="Tidy Tide showing a preview: Summer 2026 (1).jpg becomes 01.jpg, Summer 2026 (2).jpg becomes 02.jpg, and so on, each marked Ready">
 </p>
 
 ## How it works
@@ -28,11 +28,11 @@ Drop the files in and check the preview. Then press **Rename**. If something loo
 1. **Add your files.** Drag them onto the window, use **Add files** / **Add folder**, or right-click them in File Explorer and choose **Send to → Tidy Tide**.
 2. **Check the preview.** Every file shows its new name and a status:
    - **Ready**: it will be renamed.
-   - **No (number), left alone**: the name doesn't end in a number in brackets.
-   - **Same number twice, left alone**: two files would get the same new name.
-   - **Name already taken, left alone**: a file with the new name already exists.
+   - **No (number)**: left alone, because the name doesn't end in a number in brackets.
+   - **Same number twice**: left alone, because two files would get the same new name.
+   - **Name already taken**: left alone, because a file with the new name already exists.
 
-   <img src="assets/screenshots/app-statuses.png" width="640" alt="Tidy Tide list showing Ready files next to files marked Same number twice and No (number), left alone">
+   <img src="assets/screenshots/app-statuses.png" width="480" alt="Tidy Tide list showing Ready files next to files marked Same number twice and No (number)">
 3. **Press Rename.** Only the files marked Ready are renamed. Nothing is ever overwritten.
 4. **Changed your mind?** Press **Undo** to put the names back.
 

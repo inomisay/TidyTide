@@ -31,6 +31,8 @@ Drop the files in and check the preview. Then press **Rename**. If something loo
    - **No (number), left alone**: the name doesn't end in a number in brackets.
    - **Same number twice, left alone**: two files would get the same new name.
    - **Name already taken, left alone**: a file with the new name already exists.
+
+   <img src="assets/screenshots/app-statuses.png" width="640" alt="Tidy Tide list showing Ready files next to files marked Same number twice and No (number), left alone">
 3. **Press Rename.** Only the files marked Ready are renamed. Nothing is ever overwritten.
 4. **Changed your mind?** Press **Undo** to put the names back.
 
@@ -70,11 +72,12 @@ Windows 10 or 11. Nothing else needs to be installed: it runs on the PowerShell 
 
 ## How it's built
 
-It's a single PowerShell script with a Windows Forms window. The rounded buttons, gradient header and waves are drawn by hand with GDI+.
+It's a PowerShell script with a Windows Forms window. The rounded cards, pill buttons, toggle switch and status badges are drawn by hand with GDI+. It draws at your screen's real resolution, so text stays sharp at 150% or 200% scaling, and uses the Windows 11 fonts and title bar when they're available.
 
 ```
 app/
   TidyTide.ps1   the app
+  ui.ps1         shared look: colours, fonts, sharp high-DPI drawing, buttons, cards
   setup.ps1      installs or uninstalls it (copies to %LOCALAPPDATA%\TidyTide and makes shortcuts)
   TidyTide.ico   icon
 website/         the project website (static HTML, deployed on Vercel)

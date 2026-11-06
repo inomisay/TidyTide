@@ -3,90 +3,8 @@
 
 param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Paths)
 
-Add-Type -AssemblyName System.Windows.Forms
-Add-Type -AssemblyName System.Drawing
-[System.Windows.Forms.Application]::EnableVisualStyles()
-
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
-
-# ---------- colours and fonts ----------
-function C([string]$hex) { [System.Drawing.ColorTranslator]::FromHtml($hex) }
-$cDeep   = C '#0A4D7C'
-$cSea    = C '#1C8FC7'
-$cSeaHi  = C '#2AA3DB'
-$cAqua   = C '#4FC3E8'
-$cFoam   = C '#EAF6FB'
-$cMist   = C '#D6EEF8'
-$cMistHi = C '#C4E6F5'
-$cRowAlt = C '#F4FAFD'
-$cSelect = C '#CDEBF7'
-$cInk    = C '#12324A'
-$cGray   = C '#8AA3B5'
-$cTeal   = C '#12917F'
-$cCoral  = C '#E07A5F'
-$cWhite  = [System.Drawing.Color]::White
-
-$fTitle    = New-Object System.Drawing.Font('Segoe UI Semibold', 22)
-$fSub      = New-Object System.Drawing.Font('Segoe UI', 10.5)
-$fButton   = New-Object System.Drawing.Font('Segoe UI Semibold', 10)
-$fBig      = New-Object System.Drawing.Font('Segoe UI Semibold', 15)
-$fBody     = New-Object System.Drawing.Font('Segoe UI', 10)
-$fBodyBold = New-Object System.Drawing.Font('Segoe UI Semibold', 10)
-
-$centerFlags = [System.Windows.Forms.TextFormatFlags]'HorizontalCenter, VerticalCenter, SingleLine, NoPrefix'
-$cellFlags   = [System.Windows.Forms.TextFormatFlags]'Left, VerticalCenter, SingleLine, EndEllipsis, NoPrefix'
-$CHECK = [string][char]0x2713
-$DOT   = [string][char]0x2022
-
-# ---------- drawing helpers ----------
-function New-RoundPath([float]$x, [float]$y, [float]$w, [float]$h, [float]$r) {
-    $p = New-Object System.Drawing.Drawing2D.GraphicsPath
-    [float]$d = [Math]::Min($r * 2, [Math]::Min($w, $h))
-    $p.AddArc([float]$x, [float]$y, $d, $d, [float]180, [float]90)
-    $p.AddArc([float]($x + $w - $d), [float]$y, $d, $d, [float]270, [float]90)
-    $p.AddArc([float]($x + $w - $d), [float]($y + $h - $d), $d, $d, [float]0, [float]90)
-    $p.AddArc([float]$x, [float]($y + $h - $d), $d, $d, [float]90, [float]90)
-    $p.CloseFigure()
-    return $p
-}
-
-function Set-DoubleBuffered($control) {
-    $flags = [System.Reflection.BindingFlags]'Instance, NonPublic'
-    $control.GetType().GetProperty('DoubleBuffered', $flags).SetValue($control, $true, $null)
-}
-
-function New-PillButton([string]$text, $back, $hover, $fore, [int]$width) {
-    $b = New-Object System.Windows.Forms.Button
-    $b.Text = $text
-    $b.Width = $width
-    $b.Height = 38
-    $b.FlatStyle = 'Flat'
-    $b.FlatAppearance.BorderSize = 0
-    $b.Cursor = [System.Windows.Forms.Cursors]::Hand
-    $b.Font = $fButton
-    $b.Margin = New-Object System.Windows.Forms.Padding(0, 0, 10, 0)
-    $b.Tag = @{ Back = $back; Hover = $hover; Fore = $fore; Over = $false }
-    $b.Add_MouseEnter({ $this.Tag.Over = $true;  $this.Invalidate() })
-    $b.Add_MouseLeave({ $this.Tag.Over = $false; $this.Invalidate() })
-    $b.Add_EnabledChanged({ $this.Invalidate() })
-    $b.Add_Paint({
-        param($s, $e)
-        $g = $e.Graphics
-        $g.SmoothingMode = 'AntiAlias'
-        $g.Clear($s.Parent.BackColor)
-        $t = $s.Tag
-        $fill = $t.Back
-        $textColor = $t.Fore
-        if (-not $s.Enabled) { $fill = $cMist; $textColor = $cGray }
-        elseif ($t.Over) { $fill = $t.Hover }
-        $path = New-RoundPath 0 0 ($s.Width - 1) ($s.Height - 1) (($s.Height - 1) / 2)
-        $brush = New-Object System.Drawing.SolidBrush($fill)
-        $g.FillPath($brush, $path)
-        $brush.Dispose(); $path.Dispose()
-        [System.Windows.Forms.TextRenderer]::DrawText($g, $s.Text, $s.Font, $s.ClientRectangle, $textColor, $centerFlags)
-    })
-    return $b
-}
+. (Join-Path $here 'ui.ps1')
 
 # ---------- file logic ----------
 $pattern = '^.*?\s*\((\d+)\)$'
@@ -258,81 +176,63 @@ function Show-FolderPicker {
 # ---------- window ----------
 $form = New-Object System.Windows.Forms.Form
 $form.Text = 'Tidy Tide'
-$form.Size = New-Object System.Drawing.Size(860, 620)
-$form.MinimumSize = New-Object System.Drawing.Size(680, 480)
+$form.ClientSize = New-Object System.Drawing.Size((P 900), (P 640))
+$form.MinimumSize = New-Object System.Drawing.Size((P 720), (P 520))
 $form.StartPosition = 'CenterScreen'
-$form.BackColor = $cFoam
+$form.BackColor = $cBg
 $form.Font = $fBody
 $iconPath = Join-Path $here 'TidyTide.ico'
 if (Test-Path -LiteralPath $iconPath) { $form.Icon = New-Object System.Drawing.Icon($iconPath) }
+Set-ModernWindow $form
+$logo = Get-IconBitmap $iconPath 256
 
-# header with gradient and waves
+# header: logo, name and a little sea on the right
 $header = New-Object System.Windows.Forms.Panel
 $header.Dock = 'Top'
-$header.Height = 128
+$header.Height = P 92
+$header.BackColor = $cBg
 Set-DoubleBuffered $header
 $header.Add_Resize({ $this.Invalidate() })
 $header.Add_Paint({
     param($s, $e)
-    $w = $s.Width; $h = $s.Height
-    if ($w -lt 4 -or $h -lt 4) { return }
     $g = $e.Graphics
     $g.SmoothingMode = 'AntiAlias'
-
-    $grad = New-Object System.Drawing.Drawing2D.LinearGradientBrush($s.ClientRectangle, $cDeep, $cAqua, [float]0)
-    $g.FillRectangle($grad, $s.ClientRectangle)
-    $grad.Dispose()
-
-    # back wave, see-through
-    $p1 = New-Object System.Drawing.Drawing2D.GraphicsPath
-    $p1.AddBezier([float]0, [float]($h - 26), [float]($w * 0.3), [float]($h - 62), [float]($w * 0.55), [float]($h - 2), [float]$w, [float]($h - 40))
-    $p1.AddLine([float]$w, [float]($h - 40), [float]$w, [float]$h)
-    $p1.AddLine([float]$w, [float]$h, [float]0, [float]$h)
-    $p1.CloseFigure()
-    $b1 = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(70, 255, 255, 255))
-    $g.FillPath($b1, $p1)
-
-    # front wave, same colour as the body so it melts into it
-    $p2 = New-Object System.Drawing.Drawing2D.GraphicsPath
-    $p2.AddBezier([float]0, [float]($h - 12), [float]($w * 0.35), [float]($h - 34), [float]($w * 0.65), [float]($h + 6), [float]$w, [float]($h - 18))
-    $p2.AddLine([float]$w, [float]($h - 18), [float]$w, [float]$h)
-    $p2.AddLine([float]$w, [float]$h, [float]0, [float]$h)
-    $p2.CloseFigure()
-    $b2 = New-Object System.Drawing.SolidBrush($cFoam)
-    $g.FillPath($b2, $p2)
-
-    # bubbles
-    $pen = New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(150, 255, 255, 255), [float]2.5)
-    $g.DrawEllipse($pen, [float]($w - 120), [float]22, [float]30, [float]30)
-    $g.DrawEllipse($pen, [float]($w - 78), [float]14, [float]14, [float]14)
-    $g.DrawEllipse($pen, [float]($w - 160), [float]48, [float]10, [float]10)
-
-    $b1.Dispose(); $b2.Dispose(); $pen.Dispose(); $p1.Dispose(); $p2.Dispose()
-
-    [System.Windows.Forms.TextRenderer]::DrawText($g, 'Tidy Tide', $fTitle, (New-Object System.Drawing.Point(26, 14)), $cWhite)
-    [System.Windows.Forms.TextRenderer]::DrawText($g, 'Turns  photo (12).jpg  into  12.jpg', $fSub, (New-Object System.Drawing.Point(30, 58)), (C '#DDF1FA'))
+    $g.InterpolationMode = 'HighQualityBicubic'
+    $w = $s.Width; $h = $s.Height
+    $pen = New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(110, 79, 195, 232), (PF 2))
+    $g.DrawEllipse($pen, [float]($w - (P 118)), (PF 18), (PF 26), (PF 26))
+    $g.DrawEllipse($pen, [float]($w - (P 80)), (PF 12), (PF 12), (PF 12))
+    $g.DrawEllipse($pen, [float]($w - (P 150)), (PF 40), (PF 9), (PF 9))
+    $pen.Dispose()
+    if ($logo) { $g.DrawImage($logo, (P 28), (P 22), (P 48), (P 48)) }
+    [System.Windows.Forms.TextRenderer]::DrawText($g, 'Tidy Tide', $fTitle, (New-Object System.Drawing.Point((P 88), (P 18))), $cInk)
+    [System.Windows.Forms.TextRenderer]::DrawText($g, 'Turns  photo (12).jpg  into  12.jpg', $fSub, (New-Object System.Drawing.Point((P 90), (P 50))), $cSoft)
 })
 
 # toolbar
 $toolbar = New-Object System.Windows.Forms.FlowLayoutPanel
 $toolbar.Dock = 'Top'
-$toolbar.Height = 56
-$toolbar.BackColor = $cFoam
-$toolbar.Padding = New-Object System.Windows.Forms.Padding(24, 8, 24, 0)
-
-$btnFiles  = New-PillButton '+  Add files'  $cSea  $cSeaHi  $cWhite 130
-$btnFolder = New-PillButton '+  Add folder' $cSea  $cSeaHi  $cWhite 140
-$btnClear  = New-PillButton 'Clear'         $cMist $cMistHi $cDeep  90
+$toolbar.Height = P 58
+$toolbar.BackColor = $cBg
+$toolbar.Padding = New-Object System.Windows.Forms.Padding((P 26), (P 8), (P 26), 0)
+$btnFiles  = New-PillButton '+   Add files'  'accent' 132
+$btnFolder = New-PillButton '+   Add folder' 'soft'   140
+$btnClear  = New-PillButton 'Clear'          'ghost'  86
+foreach ($b in @($btnFiles, $btnFolder, $btnClear)) { $b.Margin = New-Object System.Windows.Forms.Padding(0, 0, (P 10), 0) }
 $toolbar.Controls.AddRange(@($btnFiles, $btnFolder, $btnClear))
 
-# body: drop zone when empty, list when there are files
+# body: a white card holding the drop zone (when empty) or the list
 $body = New-Object System.Windows.Forms.Panel
 $body.Dock = 'Fill'
-$body.BackColor = $cFoam
-$body.Padding = New-Object System.Windows.Forms.Padding(24, 4, 24, 4)
+$body.BackColor = $cBg
+$body.Padding = New-Object System.Windows.Forms.Padding((P 22), (P 2), (P 22), (P 2))
+$card = New-Card
+$card.Dock = 'Fill'
+$body.Controls.Add($card)
 
 $dropZone = New-Object System.Windows.Forms.Panel
 $dropZone.Dock = 'Fill'
+$dropZone.BackColor = $cCard
 $dropZone.AllowDrop = $true
 $dropZone.Cursor = [System.Windows.Forms.Cursors]::Hand
 Set-DoubleBuffered $dropZone
@@ -340,37 +240,40 @@ $dropZone.Add_Resize({ $this.Invalidate() })
 $dropZone.Add_Paint({
     param($s, $e)
     $w = $s.Width; $h = $s.Height
-    if ($w -lt 20 -or $h -lt 20) { return }
+    if ($w -lt 40 -or $h -lt 40) { return }
     $g = $e.Graphics
     $g.SmoothingMode = 'AntiAlias'
-    $g.Clear($cFoam)
+    $g.Clear($cCard)
 
-    $path = New-RoundPath 2 2 ($w - 5) ($h - 5) 22
-    $fill = $cWhite
-    if ($script:dragOver) { $fill = C '#DDF1FA' }
-    $brush = New-Object System.Drawing.SolidBrush($fill)
-    $g.FillPath($brush, $path)
-    $pen = New-Object System.Drawing.Pen($cAqua, [float]2.5)
-    $pen.DashStyle = 'Dash'
-    $g.DrawPath($pen, $path)
-
-    # three little waves
-    $cx = $w / 2; $cy = $h / 2 - 46
-    $wavePen = New-Object System.Drawing.Pen($cSea, [float]4)
-    $wavePen.StartCap = 'Round'; $wavePen.EndCap = 'Round'
-    foreach ($i in 0..2) {
-        $y = $cy + ($i * 14) - 14
-        $x0 = $cx - 36
-        $g.DrawBezier($wavePen, [float]$x0, [float]$y, [float]($x0 + 18), [float]($y - 12), [float]($x0 + 36), [float]($y + 12), [float]($x0 + 54), [float]$y)
-        $g.DrawBezier($wavePen, [float]($x0 + 54), [float]$y, [float]($x0 + 60), [float]($y - 4), [float]($x0 + 66), [float]($y - 4), [float]($x0 + 72), [float]$y)
+    $path = New-RoundPath (PF 8) (PF 8) ($w - (PF 17)) ($h - (PF 17)) (PF 12)
+    if ($script:dragOver) {
+        $fb = New-Object System.Drawing.SolidBrush((C '#EEF8FD')); $g.FillPath($fb, $path); $fb.Dispose()
     }
+    $penColor = if ($script:dragOver) { $cSea } else { C '#A9DDF1' }
+    $pen = New-Object System.Drawing.Pen($penColor, (PF 2))
+    $pen.DashPattern = [float[]]@(4, 3)
+    $g.DrawPath($pen, $path); $pen.Dispose(); $path.Dispose()
 
-    $r1 = New-Object System.Drawing.Rectangle(0, [int]($cy + 30), $w, 34)
-    $r2 = New-Object System.Drawing.Rectangle(0, [int]($cy + 64), $w, 24)
-    [System.Windows.Forms.TextRenderer]::DrawText($g, 'Drop your files or a folder here', $fBig, $r1, $cDeep, $centerFlags)
-    [System.Windows.Forms.TextRenderer]::DrawText($g, 'or click anywhere in this box to pick them', $fBody, $r2, $cGray, $centerFlags)
+    # round badge with an arrow dropping onto waves
+    [float]$cx = $w / 2; [float]$cy = $h / 2 - (PF 40); [float]$rad = PF 38
+    $cb = New-Object System.Drawing.SolidBrush($cFoam)
+    $g.FillEllipse($cb, $cx - $rad, $cy - $rad, 2 * $rad, 2 * $rad); $cb.Dispose()
+    $ap = New-Object System.Drawing.Pen($cSea, (PF 3.2))
+    $ap.StartCap = 'Round'; $ap.EndCap = 'Round'; $ap.LineJoin = 'Round'
+    $g.DrawLine($ap, $cx, $cy - (PF 18), $cx, $cy + (PF 2))
+    $g.DrawLines($ap, [System.Drawing.PointF[]]@(
+        (New-Object System.Drawing.PointF(($cx - (PF 8)), ($cy - (PF 6)))),
+        (New-Object System.Drawing.PointF($cx, ($cy + (PF 2)))),
+        (New-Object System.Drawing.PointF(($cx + (PF 8)), ($cy - (PF 6))))))
+    [float]$wy = $cy + (PF 14)
+    $g.DrawBezier($ap, ($cx - (PF 18)), $wy, ($cx - (PF 9)), ($wy - (PF 6)), ($cx - (PF 9)), ($wy + (PF 6)), $cx, $wy)
+    $g.DrawBezier($ap, $cx, $wy, ($cx + (PF 9)), ($wy - (PF 6)), ($cx + (PF 9)), ($wy + (PF 6)), ($cx + (PF 18)), $wy)
+    $ap.Dispose()
 
-    $brush.Dispose(); $pen.Dispose(); $wavePen.Dispose(); $path.Dispose()
+    $r1 = New-Object System.Drawing.Rectangle(0, [int]($cy + $rad + (PF 16)), $w, (P 32))
+    $r2 = New-Object System.Drawing.Rectangle(0, [int]($cy + $rad + (PF 48)), $w, (P 24))
+    [System.Windows.Forms.TextRenderer]::DrawText($g, 'Drop your files or a folder here', $fBig, $r1, $cInk, $centerFlags)
+    [System.Windows.Forms.TextRenderer]::DrawText($g, 'or click to choose them', $fBody, $r2, $cGray, $centerFlags)
 })
 
 $list = New-Object System.Windows.Forms.ListView
@@ -379,92 +282,112 @@ $list.View = 'Details'
 $list.FullRowSelect = $true
 $list.AllowDrop = $true
 $list.BorderStyle = 'None'
-$list.BackColor = $cWhite
+$list.BackColor = $cCard
+$list.Font = $fBody
 $list.OwnerDraw = $true
 $list.HeaderStyle = 'Nonclickable'
 $list.Visible = $false
 Set-DoubleBuffered $list
 $rowHeight = New-Object System.Windows.Forms.ImageList
-$rowHeight.ImageSize = New-Object System.Drawing.Size(1, 34)
+$rowHeight.ImageSize = New-Object System.Drawing.Size(1, (P 44))
 $list.SmallImageList = $rowHeight
-[void]$list.Columns.Add('Now', 330)
-[void]$list.Columns.Add('Becomes', 170)
-[void]$list.Columns.Add('', 200)
-
+[void]$list.Columns.Add('CURRENT NAME', (P 340))
+[void]$list.Columns.Add('NEW NAME', (P 170))
+[void]$list.Columns.Add('STATUS', (P 200))
+$list.Add_HandleCreated({ [void][TidyTideUi.Native]::SetWindowTheme($this.Handle, 'Explorer', $null) })
 $list.Add_Resize({
     $rest = $this.ClientSize.Width - $this.Columns[0].Width - $this.Columns[1].Width
-    if ($rest -gt 60) { $this.Columns[2].Width = $rest }
+    if ($rest -gt (P 60)) { $this.Columns[2].Width = $rest }
 })
+
+$script:hot = -1
+$list.Add_MouseMove({
+    $it = $this.GetItemAt((P 4), $_.Y)
+    $i = if ($it) { $it.Index } else { -1 }
+    if ($i -ne $script:hot) {
+        $old = $script:hot; $script:hot = $i
+        if ($old -ge 0 -and $old -lt $this.Items.Count) { $this.Invalidate($this.Items[$old].Bounds) }
+        if ($i -ge 0) { $this.Invalidate($this.Items[$i].Bounds) }
+    }
+})
+$list.Add_MouseLeave({
+    if ($script:hot -ge 0 -and $script:hot -lt $this.Items.Count) { $this.Invalidate($this.Items[$script:hot].Bounds) }
+    $script:hot = -1
+})
+
 $list.Add_DrawColumnHeader({
     param($s, $e)
     $g = $e.Graphics
-    $brush = New-Object System.Drawing.SolidBrush($cMist)
-    $g.FillRectangle($brush, $e.Bounds)
-    $brush.Dispose()
-    $r = New-Object System.Drawing.Rectangle(($e.Bounds.X + 12), $e.Bounds.Y, ($e.Bounds.Width - 12), $e.Bounds.Height)
-    [System.Windows.Forms.TextRenderer]::DrawText($g, $e.Header.Text, $fBodyBold, $r, $cDeep, $cellFlags)
+    $b = New-Object System.Drawing.SolidBrush($cCard); $g.FillRectangle($b, $e.Bounds); $b.Dispose()
+    $pen = New-Object System.Drawing.Pen($cLine, (PF 1))
+    $g.DrawLine($pen, $e.Bounds.Left, ($e.Bounds.Bottom - 1), $e.Bounds.Right, ($e.Bounds.Bottom - 1)); $pen.Dispose()
+    $r = New-Object System.Drawing.Rectangle(($e.Bounds.X + (P 16)), $e.Bounds.Y, ($e.Bounds.Width - (P 16)), $e.Bounds.Height)
+    [System.Windows.Forms.TextRenderer]::DrawText($g, $e.Header.Text, $fSmall, $r, $cGray, $leftFlags)
 })
 $list.Add_DrawItem({ param($s, $e) })
 $list.Add_DrawSubItem({
     param($s, $e)
     $g = $e.Graphics
+    $g.SmoothingMode = 'AntiAlias'
     $row = $e.Item.Tag
-    $back = $cWhite
+    $back = $cCard
     if ($e.Item.Selected) { $back = $cSelect }
-    elseif ($e.ItemIndex % 2 -eq 1) { $back = $cRowAlt }
+    elseif ($e.ItemIndex -eq $script:hot) { $back = $cHover }
     $brush = New-Object System.Drawing.SolidBrush($back)
-    $g.FillRectangle($brush, $e.Bounds)
-    $brush.Dispose()
+    $g.FillRectangle($brush, ($e.Bounds.X - 1), $e.Bounds.Y, ($e.Bounds.Width + 2), $e.Bounds.Height); $brush.Dispose()
+    $pen = New-Object System.Drawing.Pen((C '#EEF4F8'), (PF 1))
+    $g.DrawLine($pen, $e.Bounds.Left, ($e.Bounds.Bottom - 1), $e.Bounds.Right, ($e.Bounds.Bottom - 1)); $pen.Dispose()
 
-    $text = $e.SubItem.Text
-    $font = $fBody
-    $color = $cInk
+    $r = New-Object System.Drawing.Rectangle(($e.Bounds.X + (P 16)), $e.Bounds.Y, ($e.Bounds.Width - (P 20)), $e.Bounds.Height)
+    $cy = [int]($e.Bounds.Y + $e.Bounds.Height / 2)
     switch ($e.ColumnIndex) {
-        0 { if ($row.Code -ne 'ready') { $color = $cGray } }
-        1 { $font = $fBodyBold; $color = $cSea }
+        0 {
+            $color = if ($row.Code -eq 'ready') { $cInk } else { $cGray }
+            [System.Windows.Forms.TextRenderer]::DrawText($g, $e.SubItem.Text, $fBody, $r, $color, $leftFlags)
+        }
+        1 {
+            if ($e.SubItem.Text) {
+                [System.Windows.Forms.TextRenderer]::DrawText($g, $e.SubItem.Text, $fBodyBold, $r, $cSea, $leftFlags)
+            }
+        }
         2 {
             switch ($row.Code) {
-                'ready' { $text = "$CHECK  Ready";                       $color = $cTeal }
-                'none'  { $text = "$DOT  No (number), left alone";       $color = $cGray }
-                'dup'   { $text = "$DOT  Same number twice, left alone"; $color = $cCoral }
-                'taken' { $text = "$DOT  Name already taken, left alone"; $color = $cCoral }
+                'ready' { Draw-Badge $g "$CHECK  Ready" $r.X $cy $cMintBg $cTeal }
+                'none'  { Draw-Badge $g 'No (number), left alone' $r.X $cy $cGrayBg $cGray }
+                'dup'   { Draw-Badge $g 'Same number twice, left alone' $r.X $cy $cCoralBg $cCoral }
+                'taken' { Draw-Badge $g 'Name already taken, left alone' $r.X $cy $cCoralBg $cCoral }
             }
         }
     }
-    $r = New-Object System.Drawing.Rectangle(($e.Bounds.X + 12), $e.Bounds.Y, ($e.Bounds.Width - 16), $e.Bounds.Height)
-    [System.Windows.Forms.TextRenderer]::DrawText($g, $text, $font, $r, $color, $cellFlags)
 })
 
-$body.Controls.Add($list)
-$body.Controls.Add($dropZone)
+$card.Controls.Add($list)
+$card.Controls.Add($dropZone)
 
 # footer
 $footer = New-Object System.Windows.Forms.Panel
 $footer.Dock = 'Bottom'
-$footer.Height = 78
-$footer.BackColor = $cFoam
+$footer.Height = P 86
+$footer.BackColor = $cBg
 
-$chkPad = New-Object System.Windows.Forms.CheckBox
-$chkPad.Text = 'Add zeros in front (01, 02 ... 10) so every app sorts them right'
-$chkPad.AutoSize = $true
-$chkPad.ForeColor = $cInk
-$chkPad.Cursor = [System.Windows.Forms.Cursors]::Hand
+$chkPad = New-Toggle 'Add zeros in front (01, 02 ... 10) so every app sorts them right'
 
 $lblStatus = New-Object System.Windows.Forms.Label
 $lblStatus.AutoSize = $true
 $lblStatus.Font = $fBodyBold
+$lblStatus.BackColor = $cBg
 
-$btnUndo   = New-PillButton 'Undo'   $cMist $cMistHi $cDeep 90
-$btnRename = New-PillButton 'Rename' $cDeep $cSea    $cWhite 130
+$btnUndo   = New-PillButton 'Undo'   'soft'    96
+$btnRename = New-PillButton 'Rename' 'primary' 140
 $btnUndo.Enabled = $false
 $btnRename.Enabled = $false
 $footer.Controls.AddRange(@($chkPad, $lblStatus, $btnUndo, $btnRename))
 $footer.Add_Resize({
     $w = $footer.ClientSize.Width
-    $btnRename.Location = New-Object System.Drawing.Point(($w - 24 - $btnRename.Width), 20)
-    $btnUndo.Location   = New-Object System.Drawing.Point(($btnRename.Left - 10 - $btnUndo.Width), 20)
-    $chkPad.Location    = New-Object System.Drawing.Point(26, 14)
-    $lblStatus.Location = New-Object System.Drawing.Point(28, 44)
+    $btnRename.Location = New-Object System.Drawing.Point(($w - (P 28) - $btnRename.Width), (P 22))
+    $btnUndo.Location   = New-Object System.Drawing.Point(($btnRename.Left - (P 10) - $btnUndo.Width), (P 22))
+    $chkPad.Location    = New-Object System.Drawing.Point((P 28), (P 14))
+    $lblStatus.Location = New-Object System.Drawing.Point((P 28), (P 50))
 })
 
 $form.Controls.Add($body)

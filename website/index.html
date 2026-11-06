@@ -3,324 +3,399 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tidy Tide: clean up (1) (2) (3) file names on Windows</title>
+<title>Tidy Tide · tidy up (1) (2) (3) file names on Windows</title>
 <meta name="description" content="A small, free Windows app that turns photo (12).jpg into 12.jpg. Preview every change, rename in one click, undo if you need to.">
 <meta property="og:title" content="Tidy Tide">
 <meta property="og:description" content="A small, free Windows app that turns photo (12).jpg into 12.jpg.">
 <meta property="og:image" content="icon.png">
-<meta name="theme-color" content="#0A4D7C">
+<meta name="theme-color" content="#E9F8FD">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" href="icon.png" type="image/png">
 <link rel="apple-touch-icon" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --deep: #0A4D7C; --sea: #1C8FC7; --sea-hi: #2AA3DB; --aqua: #4FC3E8;
-    --foam: #EAF6FB; --mist: #D6EEF8; --row-alt: #F4FAFD;
-    --ink: #12324A; --muted: #4F6B80; --gray: #8AA3B5; --teal: #12917F; --coral: #E07A5F;
-    --radius: 14px;
+    --ink: #17405F; --ink-soft: #4C6D86; --muted: #7E98AC;
+    --deep: #1F6FA8; --sea: #3BA7E0; --aqua: #7AD3F0; --sky: #BFEAF8; --foam: #EAF8FD; --shell: #F7FCFE;
+    --mint: #2FB39A; --mint-bg: #DDF6EF; --coral: #FF8A80; --coral-bg: #FFE9E5;
+    --lilac: #9C8CF0; --lilac-bg: #EEEBFF; --sun: #F6B94A; --sun-bg: #FFF3DA;
+    --heart: #EA4AAA;
+    --r-lg: 28px; --r-md: 20px;
+    --shadow: 0 1px 2px rgba(23,64,95,.04), 0 12px 32px -8px rgba(31,111,168,.18);
     --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --font-head: "Fredoka", "Nunito", system-ui, sans-serif;
   }
   * { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
-  body {
-    margin: 0; color: var(--ink); background: #fff;
-    font: 17px/1.6 "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
-  }
-  a { color: var(--sea); }
-  code, .mono { font-family: "Cascadia Code", Consolas, ui-monospace, monospace; font-size: .92em; }
-  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  body { margin: 0; color: var(--ink); background: var(--shell); font: 17px/1.65 "Nunito", "Segoe UI", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: var(--deep); }
+  code, .mono { font-family: "Cascadia Code", ui-monospace, Consolas, monospace; font-size: .9em; }
+  code { background: var(--foam); color: var(--deep); padding: .1em .4em; border-radius: 7px; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+  h1, h2, h3 { font-family: var(--font-head); font-weight: 600; letter-spacing: -0.01em; }
 
-  /* ---------- hero ---------- */
-  .hero {
-    position: relative; color: #fff; overflow: hidden;
-    background: linear-gradient(120deg, var(--deep) 0%, var(--sea) 55%, var(--aqua) 100%);
-    padding: 28px 0 150px;
-  }
-  .nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-  .brand { display: flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; font-weight: 600; font-size: 18px; }
-  .brand img { width: 34px; height: 34px; }
-  .nav-links { display: flex; gap: 22px; }
-  .nav-links a { color: rgba(255,255,255,.88); text-decoration: none; font-size: 15px; }
-  .nav-links a:hover { color: #fff; }
-  .hero-body { display: grid; grid-template-columns: 1fr; gap: 40px; margin-top: 64px; text-align: center; }
-  .hero h1 { font-size: clamp(38px, 6vw, 62px); line-height: 1.05; margin: 0 0 18px; font-weight: 600; letter-spacing: -0.02em; text-wrap: balance; }
-  .hero h1 .mono { font-size: .82em; background: rgba(255,255,255,.16); padding: 0 .25em; border-radius: 8px; }
-  .lede { font-size: 20px; max-width: 620px; margin: 0 auto 32px; color: rgba(255,255,255,.92); text-wrap: pretty; }
-  .ctas { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  /* ---------- buttons ---------- */
   .btn {
-    display: inline-flex; align-items: center; gap: 10px; padding: 14px 26px; border-radius: 999px;
-    font-weight: 600; font-size: 16px; text-decoration: none; border: 0; cursor: pointer;
-    transition: transform .16s var(--ease-out), background-color .2s, box-shadow .2s;
+    display: inline-flex; align-items: center; gap: 9px; padding: 13px 24px; border-radius: 999px;
+    font: 800 16px/1 "Nunito", sans-serif; text-decoration: none; border: 0; cursor: pointer; white-space: nowrap;
+    transition: transform .16s var(--ease-out), box-shadow .2s, background-color .2s;
   }
   .btn:active { transform: scale(.97); }
-  .btn-primary { background: #fff; color: var(--deep); box-shadow: 0 8px 24px rgba(5,40,70,.25); }
-  .btn-ghost { background: rgba(255,255,255,.14); color: #fff; box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.5); }
+  .btn svg { width: 18px; height: 18px; flex: none; }
+  .btn-primary { color: #fff; background: linear-gradient(135deg, var(--sea), var(--deep)); box-shadow: 0 10px 24px -6px rgba(31,111,168,.55); }
+  .btn-soft { color: var(--deep); background: #fff; box-shadow: inset 0 0 0 2px var(--sky); }
+  .btn-heart { color: var(--heart); background: #fff; box-shadow: inset 0 0 0 2px #F9CFE7; }
+  .btn-heart svg { fill: var(--heart); }
   @media (hover: hover) and (pointer: fine) {
-    .btn-primary:hover { background: var(--foam); }
-    .btn-ghost:hover { background: rgba(255,255,255,.22); }
+    .btn-primary:hover { box-shadow: 0 14px 30px -6px rgba(31,111,168,.65); }
+    .btn-soft:hover { background: var(--foam); }
+    .btn-heart:hover { background: #FFF2FA; }
   }
-  .btn svg { width: 18px; height: 18px; }
-  .small-note { margin-top: 14px; font-size: 14px; color: rgba(255,255,255,.78); }
-  .bubble { position: absolute; border: 2.5px solid rgba(255,255,255,.55); border-radius: 50%; }
-  .waves { position: absolute; left: 0; right: 0; bottom: -1px; width: 100%; height: 120px; display: block; }
 
-  /* ---------- app mock ---------- */
-  .mock-wrap { margin-top: -110px; position: relative; z-index: 2; }
-  .window {
-    max-width: 820px; margin: 0 auto; border-radius: 12px; overflow: hidden; background: var(--foam);
-    box-shadow: 0 30px 70px rgba(10,50,80,.28), 0 0 0 1px rgba(10,77,124,.12);
-  }
-  .titlebar { display: flex; align-items: center; gap: 8px; background: #fff; padding: 8px 12px; font-size: 13px; color: #333; }
-  .titlebar img { width: 16px; height: 16px; }
-  .titlebar .ctl { margin-left: auto; display: flex; gap: 22px; color: #555; font-size: 14px; letter-spacing: 2px; }
-  .app-head { position: relative; padding: 18px 28px 40px; color: #fff; background: linear-gradient(110deg, var(--deep), var(--sea) 60%, var(--aqua)); overflow: hidden; }
-  .app-head h3 { margin: 0; font-size: 26px; font-weight: 600; }
-  .app-head p { margin: 0; font-size: 14px; opacity: .9; }
-  .app-head svg { position: absolute; left: 0; bottom: -1px; width: 100%; height: 28px; }
-  .toolbar { display: flex; gap: 10px; padding: 14px 24px 10px; flex-wrap: wrap; }
-  .pill { padding: 7px 18px; border-radius: 999px; font-size: 14px; font-weight: 600; background: var(--sea-hi); color: #fff; }
-  .pill.dark { background: var(--sea); }
-  .pill.light { background: var(--mist); color: var(--deep); }
-  .table { margin: 0 24px; background: #fff; border-radius: 8px; overflow: hidden; font-size: 14px; }
-  .row { display: grid; grid-template-columns: 1.3fr 1fr 1.3fr; gap: 10px; padding: 7px 14px; align-items: center; }
-  .row:nth-child(even) { background: var(--row-alt); }
-  .row.head { background: var(--mist); color: var(--deep); font-weight: 600; font-size: 13px; }
-  .row .new { color: var(--sea); font-weight: 600; }
-  .row .ok { color: var(--teal); } .row .skip { color: var(--gray); }
-  .cell { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .swap { display: inline-block; transition: opacity .22s var(--ease-out), transform .22s var(--ease-out); }
-  .swap.out { opacity: 0; transform: translateY(-4px); }
-  .app-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 24px 18px; flex-wrap: wrap; }
-  .status { font-size: 14px; font-weight: 600; color: var(--deep); }
-  .app-foot .btns { display: flex; gap: 10px; }
-  .app-btn { font: inherit; font-size: 14px; font-weight: 600; padding: 8px 26px; border-radius: 999px; border: 0; cursor: pointer; transition: transform .16s var(--ease-out), opacity .2s; }
-  .app-btn:active:not(:disabled) { transform: scale(.96); }
-  .app-btn.go { background: var(--deep); color: #fff; }
-  .app-btn.undo { background: var(--mist); color: var(--deep); }
-  .app-btn:disabled { opacity: .45; cursor: default; }
-  .mock-caption { text-align: center; color: var(--muted); font-size: 14px; margin-top: 14px; }
+  /* ---------- hero ---------- */
+  .hero { position: relative; overflow: hidden; background: linear-gradient(180deg, #F3FBFF 0%, var(--foam) 45%, var(--sky) 100%); padding: 22px 0 200px; }
+  .nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; position: relative; z-index: 3; }
+  .brand { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font: 600 21px var(--font-head); }
+  .brand img { width: 38px; height: 38px; filter: drop-shadow(0 4px 8px rgba(31,111,168,.25)); }
+  .nav-links { display: flex; align-items: center; gap: 4px; }
+  .nav-links a { color: var(--ink-soft); text-decoration: none; font-weight: 700; font-size: 15px; padding: 8px 14px; border-radius: 999px; transition: background-color .2s; }
+  .nav-links a:hover { background: rgba(255,255,255,.75); color: var(--ink); }
+  .nav-links a.sponsor { color: var(--heart); }
+  .hero-body { position: relative; z-index: 2; text-align: center; margin-top: 64px; }
+  .badge { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: var(--ink-soft); font-weight: 700; font-size: 14px; padding: 7px 16px; border-radius: 999px; box-shadow: var(--shadow); }
+  .badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 0 4px var(--mint-bg); }
+  .hero h1 { font-size: clamp(40px, 6.4vw, 70px); line-height: 1.08; margin: 22px auto 18px; max-width: 900px; text-wrap: balance; }
+  .chip { display: inline-block; font-family: "Cascadia Code", ui-monospace, Consolas, monospace; font-size: .74em; font-weight: 600; padding: .04em .32em; border-radius: .32em; vertical-align: .06em; }
+  .chip.before { background: #fff; color: var(--muted); box-shadow: inset 0 0 0 2px var(--sky); text-decoration: line-through; text-decoration-color: rgba(255,138,128,.7); text-decoration-thickness: 3px; }
+  .chip.after { background: linear-gradient(135deg, var(--sea), var(--deep)); color: #fff; box-shadow: 0 10px 22px -8px rgba(31,111,168,.6); }
+  .lede { font-size: 20px; color: var(--ink-soft); max-width: 600px; margin: 0 auto 32px; text-wrap: pretty; }
+  .ctas { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .small-note { margin-top: 18px; font-size: 14.5px; color: var(--muted); font-weight: 600; }
+
+  .bubbles { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+  .bubbles span { position: absolute; bottom: -40px; border-radius: 50%; background: radial-gradient(circle at 32% 30%, rgba(255,255,255,.95) 0 18%, rgba(255,255,255,.25) 40%, rgba(122,211,240,.18) 100%); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.8); animation: rise linear infinite; }
+  @keyframes rise { from { transform: translate3d(0,0,0); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } to { transform: translate3d(var(--drift, 20px), -720px, 0); opacity: 0; } }
+
+  .waves { position: absolute; left: 0; right: 0; bottom: -2px; height: 170px; overflow: hidden; z-index: 1; }
+  .wave { position: absolute; left: 0; bottom: 0; width: 200%; height: 100%; animation: drift linear infinite; }
+  .wave svg { display: block; width: 100%; height: 100%; }
+  .wave.w1 { animation-duration: 26s; opacity: .55; bottom: 34px; }
+  .wave.w2 { animation-duration: 18s; animation-direction: reverse; opacity: .7; bottom: 14px; }
+  .wave.w3 { animation-duration: 32s; }
+  @keyframes drift { from { transform: translate3d(0,0,0); } to { transform: translate3d(-50%,0,0); } }
+
+  /* ---------- demo ---------- */
+  .demo-wrap { position: relative; z-index: 4; margin-top: -150px; }
+  .demo { max-width: 780px; margin: 0 auto; background: rgba(255,255,255,.92); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: var(--r-lg); padding: 22px; box-shadow: 0 30px 60px -20px rgba(23,64,95,.28), 0 0 0 1px rgba(122,211,240,.35); }
+  .demo-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 6px 16px; flex-wrap: wrap; }
+  .demo-title { display: flex; align-items: center; gap: 10px; font: 600 18px var(--font-head); }
+  .demo-title img { width: 28px; height: 28px; }
+  .toggle { display: inline-flex; align-items: center; gap: 10px; font-size: 14.5px; font-weight: 700; color: var(--ink-soft); cursor: pointer; user-select: none; }
+  .toggle input { position: absolute; opacity: 0; pointer-events: none; }
+  .track { width: 42px; height: 24px; border-radius: 999px; background: var(--sky); position: relative; transition: background-color .2s; flex: none; }
+  .track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 2px 4px rgba(23,64,95,.2); transition: transform .22s var(--ease-out); }
+  .toggle input:checked + .track { background: var(--sea); }
+  .toggle input:checked + .track::after { transform: translateX(18px); }
+  .toggle input:focus-visible + .track { outline: 3px solid var(--aqua); outline-offset: 2px; }
+  .files { display: grid; gap: 8px; }
+  .file { display: grid; grid-template-columns: 38px minmax(0,1fr) 28px minmax(0,.7fr) auto; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 16px; background: var(--shell); }
+  .file .thumb { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; }
+  .file .thumb svg { width: 20px; height: 20px; }
+  .file .name, .file .new { font-family: "Cascadia Code", ui-monospace, Consolas, monospace; font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .file .new { color: var(--deep); font-weight: 700; }
+  .file .arrow { color: var(--aqua); text-align: center; font-weight: 800; transition: opacity .2s; }
+  .tag { font-size: 12.5px; font-weight: 800; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+  .tag.ok { color: var(--mint); background: var(--mint-bg); }
+  .tag.done { color: #fff; background: var(--mint); }
+  .tag.skip { color: var(--muted); background: #EEF3F6; }
+  .swap { display: inline-block; transition: opacity .2s var(--ease-out), transform .2s var(--ease-out), filter .2s; }
+  .swap.out { opacity: 0; transform: translateY(-5px); filter: blur(2px); }
+  .demo-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 6px 2px; flex-wrap: wrap; }
+  .status { font-weight: 800; color: var(--ink-soft); font-size: 15px; }
+  .demo-foot .btns { display: flex; gap: 10px; }
+  .demo-foot .btn { padding: 11px 22px; font-size: 15px; }
+  .btn:disabled { opacity: .45; cursor: default; transform: none; }
+  .btn-primary:disabled { box-shadow: none; }
+  .caption { text-align: center; color: var(--muted); font-size: 14.5px; font-weight: 600; margin-top: 16px; }
 
   /* ---------- sections ---------- */
-  section { padding: 84px 0 0; }
-  h2 { font-size: clamp(28px, 4vw, 38px); margin: 0 0 12px; letter-spacing: -0.01em; font-weight: 600; text-wrap: balance; }
-  .section-lede { color: var(--muted); max-width: 640px; margin: 0 0 36px; text-wrap: pretty; }
-  .problem { display: grid; grid-template-columns: 1fr auto 1fr; gap: 20px; align-items: center; }
-  .namebox { background: var(--row-alt); border: 1px solid var(--mist); border-radius: var(--radius); padding: 18px 22px; }
-  .namebox .label { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--gray); margin-bottom: 8px; }
-  .namebox ul { list-style: none; padding: 0; margin: 0; }
-  .namebox li { padding: 3px 0; }
-  .namebox.after li { color: var(--sea); font-weight: 600; }
-  .arrow { font-size: 28px; color: var(--sea); }
+  section { padding: 100px 0 0; }
+  .eyebrow { display: inline-block; font-weight: 800; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--sea); margin-bottom: 8px; }
+  h2 { font-size: clamp(30px, 4.2vw, 42px); line-height: 1.15; margin: 0 0 12px; text-wrap: balance; }
+  .section-lede { color: var(--ink-soft); max-width: 620px; margin: 0 0 40px; font-size: 18px; text-wrap: pretty; }
+  .center { text-align: center; } .center .section-lede { margin-left: auto; margin-right: auto; }
+
   .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-  .card { background: #fff; border: 1px solid var(--mist); border-radius: var(--radius); padding: 22px; }
-  .card .ic { width: 40px; height: 40px; border-radius: 12px; background: var(--foam); color: var(--sea); display: grid; place-items: center; margin-bottom: 12px; }
-  .card .ic svg { width: 22px; height: 22px; }
-  .card h3 { margin: 0 0 6px; font-size: 18px; }
-  .card p { margin: 0; color: var(--muted); font-size: 15.5px; }
-  .steps { counter-reset: s; list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; max-width: 760px; }
-  .steps li { counter-increment: s; position: relative; padding: 16px 20px 16px 68px; background: var(--row-alt); border-radius: var(--radius); border: 1px solid var(--mist); }
-  .steps li::before { content: counter(s); position: absolute; left: 18px; top: 14px; width: 32px; height: 32px; border-radius: 50%; background: var(--sea); color: #fff; font-weight: 600; display: grid; place-items: center; }
-  .callout { margin-top: 18px; max-width: 760px; padding: 14px 18px; border-left: 4px solid var(--aqua); background: var(--foam); border-radius: 0 10px 10px 0; color: var(--muted); font-size: 15.5px; }
+  .card { background: #fff; border-radius: var(--r-md); padding: 26px; box-shadow: var(--shadow); }
+  .card .ic { width: 52px; height: 52px; border-radius: 18px; display: grid; place-items: center; margin-bottom: 16px; }
+  .card .ic svg { width: 26px; height: 26px; }
+  .card h3 { margin: 0 0 6px; font-size: 20px; }
+  .card p { margin: 0; color: var(--ink-soft); font-size: 15.5px; }
+  .t-sea { background: var(--foam); color: var(--sea); } .t-mint { background: var(--mint-bg); color: var(--mint); }
+  .t-lilac { background: var(--lilac-bg); color: var(--lilac); } .t-sun { background: var(--sun-bg); color: #D99A1E; }
+  .t-coral { background: var(--coral-bg); color: var(--coral); }
+
+  .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; counter-reset: s; }
+  .step { position: relative; background: #fff; border-radius: var(--r-md); padding: 58px 22px 24px; box-shadow: var(--shadow); counter-increment: s; }
+  .step::before { content: counter(s); position: absolute; top: 18px; left: 22px; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font: 600 16px var(--font-head); color: #fff; background: linear-gradient(135deg, var(--aqua), var(--sea)); }
+  .step strong { display: block; font-family: var(--font-head); font-weight: 600; font-size: 18px; margin-bottom: 4px; }
+  .step span { color: var(--ink-soft); font-size: 15px; }
+  .note { margin-top: 22px; display: flex; gap: 14px; align-items: flex-start; padding: 18px 22px; border-radius: var(--r-md); background: var(--sun-bg); color: #7A5A1A; font-size: 15.5px; }
+  .note b { color: #5E4510; }
+  .note svg { width: 22px; height: 22px; flex: none; margin-top: 2px; color: #D99A1E; }
+
   .license-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-  .license-grid ul { margin: 0; padding-left: 20px; }
-  .license-grid li { margin: 6px 0; color: var(--muted); }
+  .license-grid ul { margin: 0; padding: 0; list-style: none; }
+  .license-grid li { position: relative; padding: 6px 0 6px 30px; color: var(--ink-soft); }
+  .license-grid li::before { position: absolute; left: 0; top: 7px; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 800; }
+  .yes li::before { content: "✓"; background: var(--mint-bg); color: var(--mint); }
+  .must li::before { content: "!"; background: var(--sun-bg); color: #D99A1E; }
   .license-grid li strong { color: var(--ink); }
-  .fine { font-size: 14px; color: var(--gray); margin-top: 18px; }
+  .fine { font-size: 14.5px; color: var(--muted); margin-top: 20px; }
+
+  .support { position: relative; overflow: hidden; border-radius: 36px; padding: 56px 32px; text-align: center; background: linear-gradient(135deg, #FFF0F7 0%, #F1ECFF 50%, var(--foam) 100%); }
+  .support h2 { margin-bottom: 10px; }
+  .support p { color: var(--ink-soft); max-width: 560px; margin: 0 auto 28px; font-size: 18px; }
+  .support .heart { width: 64px; height: 64px; margin: 0 auto 14px; border-radius: 22px; background: #fff; display: grid; place-items: center; box-shadow: var(--shadow); }
+  .support .heart svg { width: 32px; height: 32px; fill: var(--heart); animation: beat 2.4s var(--ease-out) infinite; }
+  @keyframes beat { 0%, 60%, 100% { transform: scale(1); } 20% { transform: scale(1.14); } 35% { transform: scale(.98); } }
+  .support .ctas .btn-heart { background: var(--heart); color: #fff; box-shadow: 0 10px 24px -6px rgba(234,74,170,.5); }
+  .support .ctas .btn-heart svg { fill: #fff; }
 
   /* ---------- footer ---------- */
-  footer { margin-top: 96px; position: relative; color: rgba(255,255,255,.9); background: var(--deep); padding: 70px 0 34px; text-align: center; font-size: 15px; }
-  footer svg { position: absolute; top: -1px; left: 0; width: 100%; height: 60px; }
-  footer a { color: #fff; }
-  footer .made { font-size: 16px; }
-  footer .sub { margin-top: 8px; font-size: 13.5px; opacity: .75; }
+  footer { position: relative; margin-top: 120px; background: linear-gradient(180deg, var(--sea) 0%, var(--deep) 100%); color: rgba(255,255,255,.9); text-align: center; padding: 40px 0 36px; }
+  footer .top-wave { position: absolute; left: 0; right: 0; top: -59px; height: 60px; overflow: hidden; }
+  footer .top-wave .wave { animation-duration: 24s; }
+  footer .fish { position: absolute; top: -14px; left: 0; width: 46px; animation: swim 38s linear infinite; z-index: 2; }
+  @keyframes swim { from { transform: translateX(-80px); } to { transform: translateX(calc(100vw + 80px)); } }
+  footer a { color: #fff; font-weight: 700; }
+  footer .made { font-size: 17px; font-weight: 600; }
+  footer .links { display: flex; justify-content: center; gap: 22px; margin: 14px 0 0; flex-wrap: wrap; font-size: 15px; }
+  footer .links a { text-decoration: none; opacity: .85; } footer .links a:hover { opacity: 1; text-decoration: underline; }
+  footer .sub { margin-top: 18px; font-size: 13.5px; opacity: .7; }
 
-  @media (max-width: 760px) {
-    .nav-links { display: none; }
-    .features, .license-grid { grid-template-columns: 1fr; }
-    .problem { grid-template-columns: 1fr; }
-    .arrow { transform: rotate(90deg); justify-self: center; }
-    .row { grid-template-columns: 1.2fr 1fr; }
-    .row > :nth-child(3) { display: none; }
-    .titlebar .ctl { display: none; }
-    .table { margin: 0 12px; font-size: 13px; }
-    .row { padding: 7px 10px; }
-    .toolbar, .app-foot { padding-left: 12px; padding-right: 12px; }
+  @media (max-width: 900px) { .steps { grid-template-columns: 1fr 1fr; } .features { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 680px) {
+    .nav-links a:not(.sponsor) { display: none; }
+    .features, .license-grid, .steps { grid-template-columns: 1fr; }
+    .demo { padding: 14px; border-radius: 22px; }
+    .file { grid-template-columns: 34px minmax(0,1fr) auto; gap: 10px; padding: 9px 10px; }
+    .file .thumb { width: 34px; height: 34px; }
+    .file .arrow, .file .tag { display: none; }
+    .file .new { grid-column: 2; grid-row: 2; font-size: 13.5px; }
+    .file .new:not(:empty)::before { content: "→ "; color: var(--aqua); }
+    .file .thumb { grid-row: span 2; }
+    .support { padding: 44px 20px; border-radius: 28px; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .swap, .btn, .app-btn { transition: none; }
+    .wave, .bubbles span, footer .fish, .support .heart svg { animation: none; }
+    .bubbles { display: none; }
+    .swap, .btn, .track::after { transition: none; }
+    html { scroll-behavior: auto; }
   }
 </style>
 </head>
 <body>
 
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="wave" viewBox="0 0 2880 120" preserveAspectRatio="none"><path d="M0,60 Q360,10 720,60 T1440,60 T2160,60 T2880,60 V120 H0 Z"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.5 3 4.5 6.8 4.5c2.1 0 3.5 1.1 5.2 3 1.7-1.9 3.1-3 5.2-3 3.8 0 5.9 4 4.4 7.3C19.5 16.4 12 21 12 21z"/></symbol>
+    <symbol id="i-gh" viewBox="0 0 24 24"><path fill="currentColor" d="M12 .5a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2.1c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 6 .4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .5z"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-5-5m5 5l5-5M4 20h16"/></symbol>
+    <symbol id="i-img" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="4"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-8 9"/></g></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></g></symbol>
+  </defs>
+</svg>
+
 <header class="hero">
-  <span class="bubble" style="width:46px;height:46px;right:14%;top:120px"></span>
-  <span class="bubble" style="width:22px;height:22px;right:9%;top:96px"></span>
-  <span class="bubble" style="width:16px;height:16px;right:19%;top:170px"></span>
-  <span class="bubble" style="width:30px;height:30px;left:8%;top:240px;opacity:.6"></span>
+  <div class="bubbles" aria-hidden="true">
+    <span style="left:6%;width:18px;height:18px;animation-duration:13s;animation-delay:-2s;--drift:30px"></span>
+    <span style="left:14%;width:10px;height:10px;animation-duration:9s;animation-delay:-6s;--drift:-14px"></span>
+    <span style="left:24%;width:26px;height:26px;animation-duration:16s;animation-delay:-11s"></span>
+    <span style="left:71%;width:14px;height:14px;animation-duration:11s;animation-delay:-4s;--drift:-24px"></span>
+    <span style="left:80%;width:30px;height:30px;animation-duration:18s;animation-delay:-9s"></span>
+    <span style="left:89%;width:12px;height:12px;animation-duration:10s;animation-delay:-1s;--drift:12px"></span>
+    <span style="left:94%;width:20px;height:20px;animation-duration:14s;animation-delay:-7s;--drift:-30px"></span>
+  </div>
+
   <div class="wrap">
     <nav class="nav">
-      <a class="brand" href="/"><img src="icon.png" alt="">Tidy Tide</a>
+      <a class="brand" href="#"><img src="icon.png" alt="">Tidy Tide</a>
       <div class="nav-links">
         <a href="#features">Features</a>
         <a href="#install">Install</a>
         <a href="#licence">Licence</a>
         <a href="https://github.com/inomisay/TidyTide">GitHub</a>
+        <a class="sponsor" href="https://github.com/sponsors/inomisay">♥ Sponsor</a>
       </div>
     </nav>
+
     <div class="hero-body">
-      <div>
-        <h1>Turn <span class="mono">photo&nbsp;(12).jpg</span><br>into <span class="mono">12.jpg</span></h1>
-        <p class="lede">A small, free Windows app that tidies the <code>(1)</code> <code>(2)</code> <code>(3)</code> names Windows gives your files. You see every change first, rename them all in one click, and can undo it.</p>
-        <div class="ctas">
-          <a class="btn btn-primary" href="https://github.com/inomisay/TidyTide/archive/refs/heads/main.zip">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 20h16"/></svg>
-            Download for Windows
-          </a>
-          <a class="btn btn-ghost" href="https://github.com/inomisay/TidyTide">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2.1c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 6 .4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .5z"/></svg>
-            View source
-          </a>
-        </div>
-        <p class="small-note">Windows 10 &amp; 11 · Free and open source (GPL-3.0) · Nothing else to install</p>
+      <span class="badge"><span class="dot"></span>Free for Windows 10 &amp; 11</span>
+      <h1>Turn <span class="chip before">photo&nbsp;(12).jpg</span> into <span class="chip after">12.jpg</span></h1>
+      <p class="lede">A small, friendly app that tidies the (1) (2) (3) names Windows gives your files. Check the preview, rename them all in one click, and undo if you change your mind.</p>
+      <div class="ctas">
+        <a class="btn btn-primary" href="https://github.com/inomisay/TidyTide/archive/refs/heads/main.zip"><svg><use href="#i-down"/></svg>Download for Windows</a>
+        <a class="btn btn-soft" href="https://github.com/inomisay/TidyTide"><svg><use href="#i-gh"/></svg>View on GitHub</a>
       </div>
+      <p class="small-note">Free &amp; open source · No account, no ads · Nothing else to install</p>
     </div>
   </div>
-  <svg class="waves" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
-    <path d="M0,70 C240,20 480,110 720,70 C960,30 1200,100 1440,60 L1440,120 L0,120 Z" fill="rgba(255,255,255,.35)"/>
-    <path d="M0,90 C260,55 520,120 760,90 C1000,60 1220,110 1440,85 L1440,120 L0,120 Z" fill="#fff"/>
-  </svg>
+
+  <div class="waves" aria-hidden="true">
+    <div class="wave w1"><svg fill="#7AD3F0"><use href="#wave"/></svg></div>
+    <div class="wave w2"><svg fill="#B6E7F7"><use href="#wave"/></svg></div>
+    <div class="wave w3"><svg fill="#F7FCFE"><use href="#wave"/></svg></div>
+  </div>
 </header>
 
 <main>
-  <div class="wrap mock-wrap">
-    <div class="window" role="img" aria-label="The Tidy Tide window, showing a list of files with their new names">
-      <div class="titlebar"><img src="icon.png" alt="">Tidy Tide<span class="ctl">&#8212; &#9633; &#10005;</span></div>
-      <div class="app-head">
-        <h3>Tidy Tide</h3>
-        <p>Turns photo (12).jpg into 12.jpg</p>
-        <svg viewBox="0 0 800 28" preserveAspectRatio="none" aria-hidden="true"><path d="M0,14 C200,0 400,28 600,12 C700,4 760,10 800,14 L800,28 L0,28 Z" fill="rgba(255,255,255,.35)"/><path d="M0,20 C220,10 420,30 620,18 C720,12 770,18 800,20 L800,28 L0,28 Z" fill="#EAF6FB"/></svg>
+  <div class="wrap demo-wrap">
+    <div class="demo">
+      <div class="demo-head">
+        <div class="demo-title"><img src="icon.png" alt="">Beach trip photos</div>
+        <label class="toggle"><input type="checkbox" id="pad" checked><span class="track"></span>Add zeros (01, 02 …)</label>
       </div>
-      <div class="toolbar"><span class="pill">+ Add files</span><span class="pill dark">+ Add folder</span><span class="pill light">Clear</span></div>
-      <div class="table" id="demo-table">
-        <div class="row head"><span>Current name</span><span>New name</span><span>Status</span></div>
-      </div>
-      <div class="app-foot">
-        <span class="status" id="demo-status"></span>
+      <div class="files" id="files"></div>
+      <div class="demo-foot">
+        <span class="status" id="status" aria-live="polite"></span>
         <span class="btns">
-          <button class="app-btn undo" id="demo-undo" disabled>Undo</button>
-          <button class="app-btn go" id="demo-go">Rename</button>
+          <button class="btn btn-soft" id="undo" disabled>Undo</button>
+          <button class="btn btn-primary" id="go">Rename</button>
         </span>
       </div>
     </div>
-    <p class="mock-caption">Try it: press <strong>Rename</strong>, then <strong>Undo</strong>.</p>
+    <p class="caption">Try it here: press <b>Rename</b>, then <b>Undo</b>.</p>
   </div>
-
-  <section>
-    <div class="wrap">
-      <h2>The problem</h2>
-      <p class="section-lede">Select a bunch of files in Windows and rename them all at once, and you get <code>photo (1)</code>, <code>photo (2)</code>, <code>photo (3)</code>… If you only wanted <code>1</code>, <code>2</code>, <code>3</code>, you're stuck fixing every name by hand. Tidy Tide does it for you.</p>
-      <div class="problem">
-        <div class="namebox"><div class="label">Before</div><ul class="mono"><li>photo (1).jpg</li><li>photo (2).jpg</li><li>photo (10).jpg</li><li>(7).png</li></ul></div>
-        <div class="arrow" aria-hidden="true">&#8594;</div>
-        <div class="namebox after"><div class="label">After</div><ul class="mono"><li>01.jpg</li><li>02.jpg</li><li>10.jpg</li><li>7.png</li></ul></div>
-      </div>
-    </div>
-  </section>
 
   <section id="features">
     <div class="wrap">
-      <h2>What it does</h2>
-      <p class="section-lede">It does one job and it's careful about it.</p>
+      <div class="center">
+        <span class="eyebrow">What it does</span>
+        <h2>One small job, done carefully</h2>
+        <p class="section-lede">Select a bunch of files in Windows and rename them all at once, and you get <code>photo (1)</code>, <code>photo (2)</code>, <code>photo (3)</code>… Tidy Tide turns them into plain <code>1</code>, <code>2</code>, <code>3</code>.</p>
+      </div>
       <div class="features">
-        <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h10M4 17h7"/></svg></div><h3>Number becomes the name</h3><p><code>photo (12).jpg</code> becomes <code>12.jpg</code>, and <code>(7).png</code> becomes <code>7.png</code>.</p></div>
-        <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></div><h3>Preview first</h3><p>You see every change before it happens. Nothing is renamed until you press Rename.</p></div>
-        <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></div><h3>Undo</h3><p>Changed your mind? Undo puts the last rename back the way it was.</p></div>
-        <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h4M3 12h4M3 18h4M11 6h10M11 12h10M11 18h10"/></svg></div><h3>Sorts properly</h3><p>Can add zeros in front (<code>01</code>, <code>02</code> … <code>10</code>) so every app lists the files in the right order.</p></div>
-        <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z"/></svg></div><h3>Never overwrites</h3><p>Skips files with no number in brackets, numbers used twice, and names that are already taken.</p></div>
-        <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div><h3>Right-click Send to</h3><p>Right-click files or a folder in File Explorer and choose <strong>Send to → Tidy Tide</strong>.</p></div>
+        <div class="card"><div class="ic t-sea"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h10M4 17h7"/></svg></div><h3>The number becomes the name</h3><p><code>photo (12).jpg</code> becomes <code>12.jpg</code>, and <code>(7).png</code> becomes <code>7.png</code>.</p></div>
+        <div class="card"><div class="ic t-lilac"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></div><h3>Preview first</h3><p>You see every new name before anything changes. Nothing is renamed until you say so.</p></div>
+        <div class="card"><div class="ic t-mint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></div><h3>Easy undo</h3><p>Changed your mind? One click puts the last rename back the way it was.</p></div>
+        <div class="card"><div class="ic t-sun"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h4M3 12h4M3 18h4M11 6h10M11 12h10M11 18h10"/></svg></div><h3>Sorts the right way</h3><p>Optional zeros in front (<code>01</code>, <code>02</code> … <code>10</code>) so every app lists files in order.</p></div>
+        <div class="card"><div class="ic t-coral"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z"/><path d="M9 12l2 2 4-4"/></svg></div><h3>Never overwrites</h3><p>Files with no number, duplicate numbers or names already in use are left alone.</p></div>
+        <div class="card"><div class="ic t-sea"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div><h3>Right-click → Send to</h3><p>Right-click files or a folder in File Explorer and choose <b>Send to → Tidy Tide</b>.</p></div>
       </div>
     </div>
   </section>
 
   <section id="install">
     <div class="wrap">
-      <h2>Install</h2>
-      <p class="section-lede">Takes about a minute. Works on Windows 10 and 11 with the PowerShell that's already built in. You don't need to install anything else.</p>
-      <ol class="steps">
-        <li><a href="https://github.com/inomisay/TidyTide/archive/refs/heads/main.zip"><strong>Download the ZIP</strong></a> and unzip it.</li>
-        <li>Double-click <strong>Install Tidy Tide.bat</strong>.</li>
-        <li>Read the licence in the window that opens, then click <strong>Install</strong>.</li>
-        <li>Open Tidy Tide from the desktop icon or the Start menu.</li>
-      </ol>
-      <p class="callout">If Windows shows <em>“Windows protected your PC”</em>, click <strong>More info → Run anyway</strong>. Windows shows this for scripts downloaded from the internet. On Windows 11, <strong>Send to</strong> is under <strong>Show more options</strong>. To remove Tidy Tide, run <strong>Uninstall Tidy Tide.bat</strong>.</p>
+      <div class="center">
+        <span class="eyebrow">Install</span>
+        <h2>Ready in about a minute</h2>
+        <p class="section-lede">It uses the PowerShell that's already built into Windows, so there's nothing else to install.</p>
+      </div>
+      <div class="steps">
+        <div class="step"><strong><a href="https://github.com/inomisay/TidyTide/archive/refs/heads/main.zip">Download</a></strong><span>Get the ZIP and unzip it anywhere.</span></div>
+        <div class="step"><strong>Run the installer</strong><span>Double-click <b>Install Tidy Tide.bat</b>.</span></div>
+        <div class="step"><strong>Read the licence</strong><span>A window shows it. Click <b>Install</b>.</span></div>
+        <div class="step"><strong>Start tidying</strong><span>Open it from the desktop or the Start menu.</span></div>
+      </div>
+      <div class="note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg>
+        <div>If Windows shows <b>“Windows protected your PC”</b>, click <b>More info → Run anyway</b>. Windows shows this for any script downloaded from the internet. On Windows 11, <b>Send to</b> is under <b>Show more options</b>. To remove the app, run <b>Uninstall Tidy Tide.bat</b>.</div>
+      </div>
     </div>
   </section>
 
   <section id="licence">
     <div class="wrap">
-      <h2>Free and open source</h2>
-      <p class="section-lede">Copyright © 2026 Yasamin Valishariatpanahi. Tidy Tide is released under the <a href="https://github.com/inomisay/TidyTide/blob/main/LICENSE">GNU General Public License v3.0</a>. Here's what that means:</p>
+      <div class="center">
+        <span class="eyebrow">Licence</span>
+        <h2>Free and open source</h2>
+        <p class="section-lede">Copyright © 2026 Yasamin Valishariatpanahi. Released under the <a href="https://github.com/inomisay/TidyTide/blob/main/LICENSE">GNU General Public License v3.0</a>. Here's what that means:</p>
+      </div>
       <div class="license-grid">
-        <div class="card"><h3>You can</h3><ul>
+        <div class="card"><h3>You can</h3><ul class="yes">
           <li><strong>Use it</strong> for anything, for free, including at work.</li>
           <li><strong>Read and change</strong> the code.</li>
           <li><strong>Share copies</strong>, changed or not, for free or for money.</li>
         </ul></div>
-        <div class="card"><h3>If you share it, you must</h3><ul>
-          <li><strong>Give people the source code</strong> under the same GPL-3.0 licence.</li>
+        <div class="card"><h3>If you share it</h3><ul class="must">
+          <li><strong>Include the source code</strong> under the same GPL-3.0 licence.</li>
           <li><strong>Keep</strong> the copyright and licence notices, and say what you changed.</li>
-          <li><strong>Not</strong> close the source or re-licence it.</li>
+          <li><strong>Don't</strong> close the source or re-licence it.</li>
         </ul></div>
       </div>
-      <p class="fine">Tidy Tide comes with no warranty. This is a plain-language summary, not legal advice. The <a href="https://github.com/inomisay/TidyTide/blob/main/LICENSE">full licence text</a> is what counts.</p>
+      <p class="fine center">Tidy Tide comes with no warranty. This is a plain-language summary, not legal advice. The <a href="https://github.com/inomisay/TidyTide/blob/main/LICENSE">full licence text</a> is what counts.</p>
+    </div>
+  </section>
+
+  <section id="support">
+    <div class="wrap">
+      <div class="support">
+        <div class="heart"><svg><use href="#i-heart"/></svg></div>
+        <h2>Like Tidy Tide?</h2>
+        <p>It's free and always will be. If it saved you some time, you can help me keep making small, useful apps like this one.</p>
+        <div class="ctas">
+          <a class="btn btn-heart" href="https://github.com/sponsors/inomisay"><svg><use href="#i-heart"/></svg>Sponsor on GitHub</a>
+          <a class="btn btn-soft" href="https://github.com/inomisay/TidyTide"><svg viewBox="0 0 24 24" fill="#F6B94A"><path d="M12 2.5l2.9 6 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.2 1.3-6.6-4.9-4.6 6.6-.8z"/></svg>Star it on GitHub</a>
+        </div>
+      </div>
     </div>
   </section>
 </main>
 
 <footer>
-  <svg viewBox="0 0 1440 60" preserveAspectRatio="none" aria-hidden="true"><path d="M0,30 C240,60 480,0 720,30 C960,60 1200,10 1440,35 L1440,0 L0,0 Z" fill="#fff"/></svg>
+  <div class="top-wave" aria-hidden="true"><div class="wave"><svg fill="#3BA7E0" style="width:100%;height:100%"><use href="#wave"/></svg></div></div>
+  <svg class="fish" viewBox="0 0 64 36" aria-hidden="true"><path d="M44 18 L62 6 L58 18 L62 30 Z" fill="#FFB4A2"/><ellipse cx="26" cy="18" rx="24" ry="15" fill="#FF8A80"/><path d="M20 4 Q28 -2 34 5" fill="#FFB4A2"/><circle cx="13" cy="15" r="4" fill="#fff"/><circle cx="12" cy="15" r="2.2" fill="#17405F"/><path d="M8 23 Q12 26 16 23" stroke="#17405F" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
   <div class="wrap">
     <div class="made">Made by Yasamin Valishariatpanahi · <a href="https://github.com/inomisay">github.com/inomisay</a></div>
-    <div class="sub">Tidy Tide is free software under the <a href="https://github.com/inomisay/TidyTide/blob/main/LICENSE">GPL-3.0</a> licence.</div>
+    <div class="links">
+      <a href="https://github.com/inomisay/TidyTide/archive/refs/heads/main.zip">Download</a>
+      <a href="https://github.com/inomisay/TidyTide">Source code</a>
+      <a href="https://github.com/sponsors/inomisay">♥ Sponsor</a>
+      <a href="https://github.com/inomisay/TidyTide/blob/main/LICENSE">GPL-3.0 licence</a>
+    </div>
+    <div class="sub">Tidy Tide is free software. Thanks for stopping by.</div>
   </div>
 </footer>
 
 <script>
   (function () {
-    var files = [
-      ['beach trip (1).jpg', '01.jpg'], ['beach trip (2).jpg', '02.jpg'], ['beach trip (3).jpg', '03.jpg'],
-      ['beach trip (4).jpg', '04.jpg'], ['beach trip (12).jpg', '12.jpg'], ['notes.txt', null]
-    ];
-    var table = document.getElementById('demo-table');
-    var status = document.getElementById('demo-status');
-    var go = document.getElementById('demo-go');
-    var undo = document.getElementById('demo-undo');
-    var rows = files.map(function (f) {
-      var r = document.createElement('div'); r.className = 'row';
-      r.innerHTML = '<span class="cell mono"><span class="swap"></span></span><span class="cell new mono"></span><span class="cell"></span>';
-      table.appendChild(r);
-      return r;
-    });
+    var files = [['beach trip (1).jpg', 1], ['beach trip (2).jpg', 2], ['beach trip (3).jpg', 3], ['beach trip (4).jpg', 4], ['beach trip (12).jpg', 12], ['packing list.txt', null]];
+    var tints = ['t-sea', 't-lilac', 't-mint', 't-sun', 't-coral', 't-sea'];
+    var list = document.getElementById('files'), status = document.getElementById('status');
+    var go = document.getElementById('go'), undo = document.getElementById('undo'), pad = document.getElementById('pad');
     var renamed = false;
+    var rows = files.map(function (f, i) {
+      var r = document.createElement('div'); r.className = 'file';
+      r.innerHTML = '<span class="thumb ' + (f[1] ? tints[i] : 't-skip') + '" style="' + (f[1] ? '' : 'background:#EEF3F6;color:#7E98AC') + '"><svg><use href="#' + (f[1] ? 'i-img' : 'i-doc') + '"/></svg></span>' +
+        '<span class="name"><span class="swap"></span></span><span class="arrow" aria-hidden="true">→</span><span class="new"></span><span class="tag"></span>';
+      list.appendChild(r); return r;
+    });
+    function newName(f) { if (!f[1]) return ''; var n = String(f[1]); if (pad.checked && n.length < 2) n = '0' + n; return n + f[0].slice(f[0].lastIndexOf('.')); }
     function setText(el, text, animate) {
-      if (!animate) { el.textContent = text; return; }
+      if (!animate || el.textContent === text) { el.textContent = text; return; }
       el.classList.add('out');
-      setTimeout(function () { el.textContent = text; el.classList.remove('out'); }, 180);
+      setTimeout(function () { el.textContent = text; el.classList.remove('out'); }, 170);
     }
     function render(animate) {
       files.forEach(function (f, i) {
-        var c = rows[i].children;
-        setText(c[0].firstChild, renamed && f[1] ? f[1] : f[0], animate);
-        c[1].textContent = renamed ? '' : (f[1] || '');
-        c[2].className = 'cell ' + (f[1] ? 'ok' : 'skip');
-        c[2].textContent = renamed ? (f[1] ? '✓ Renamed' : '• Left alone') : (f[1] ? '✓ Ready' : '• No (number), left alone');
+        var c = rows[i].children, nn = newName(f);
+        setText(c[1].firstChild, renamed && nn ? nn : f[0], animate);
+        c[2].style.opacity = renamed || !nn ? 0 : 1;
+        c[3].textContent = renamed ? '' : nn;
+        c[4].className = 'tag ' + (!nn ? 'skip' : renamed ? 'done' : 'ok');
+        c[4].textContent = !nn ? 'Left alone' : renamed ? '✓ Renamed' : 'Ready';
       });
-      status.textContent = renamed ? '5 files renamed' : '5 files ready, 1 will be left alone';
-      go.disabled = renamed; undo.disabled = !renamed;
+      status.textContent = renamed ? '✨ 5 files tidied!' : '5 files ready · 1 left alone';
+      go.disabled = renamed; undo.disabled = !renamed; pad.disabled = renamed;
     }
     go.addEventListener('click', function () { renamed = true; render(true); });
     undo.addEventListener('click', function () { renamed = false; render(true); });
+    pad.addEventListener('change', function () { render(false); });
     render(false);
   })();
 </script>

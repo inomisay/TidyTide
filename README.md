@@ -9,6 +9,7 @@
 <p align="center">
   <a href="https://tidytide.vercel.app"><b>Website</b></a> ·
   <a href="https://github.com/inomisay/TidyTide/archive/refs/heads/main.zip"><b>Download</b></a> ·
+  <a href="https://github.com/sponsors/inomisay"><b>♥ Sponsor</b></a> ·
   <a href="LICENSE">GPL-3.0</a>
 </p>
 
@@ -65,6 +66,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -STA -File .\app\TidyTide.ps1
 ```
 
 You can also pass files or folders as arguments and they'll be added to the list.
+
+## Support
+
+Tidy Tide is free and always will be. If it saved you some time, you can support my work on **[GitHub Sponsors](https://github.com/sponsors/inomisay)**. Giving the repo a ⭐ helps too.
 
 ## Licence
 

@@ -100,9 +100,9 @@ function Add-One([string]$full) {
     if ($script:seen.Add($full)) { $script:files.Add($full) }
 }
 
-function Add-Paths([string[]]$list) {
-    if (-not $list) { return }
-    foreach ($p in $list) {
+function Add-Paths([string[]]$items) {
+    if (-not $items) { return }
+    foreach ($p in $items) {
         if ([string]::IsNullOrWhiteSpace($p)) { continue }
         if (Test-Path -LiteralPath $p -PathType Container) {
             Get-ChildItem -LiteralPath $p -File | ForEach-Object { Add-One $_.FullName }
@@ -160,7 +160,7 @@ function Update-Preview {
         elseif (Test-Path -LiteralPath $r.Target) { $r.Code = 'taken' }
     }
 
-    $script:plan = @($rows | Sort-Object Dir, @{ Expression = { if ($_.Num) { $_.Num.PadLeft(20, '0') } else { '~' } } }, Name)
+    $script:plan = @($rows | Sort-Object Dir, @{ Expression = { if ($_.Num) { 0 } else { 1 } } }, @{ Expression = { if ($_.Num) { $_.Num.PadLeft(20, '0') } else { '' } } }, Name)
 
     $list.BeginUpdate()
     $list.Items.Clear()

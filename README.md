@@ -19,6 +19,23 @@ When you select a bunch of files in Windows and rename them all at once, Windows
 
 Drop the files in and check the preview. Then press **Rename**. If something looks wrong, press **Undo**.
 
+<p align="center">
+  <img src="assets/screenshots/app.png" width="760" alt="Tidy Tide showing a preview: Summer 2026 (1).jpg becomes 01.jpg, Summer 2026 (2).jpg becomes 02.jpg, and so on, each marked Ready">
+</p>
+
+## How it works
+
+1. **Add your files.** Drag them onto the window, use **Add files** / **Add folder**, or right-click them in File Explorer and choose **Send to → Tidy Tide**.
+2. **Check the preview.** Every file shows its new name and a status:
+   - **Ready**: it will be renamed.
+   - **No (number), left alone**: the name doesn't end in a number in brackets.
+   - **Same number twice, left alone**: two files would get the same new name.
+   - **Name already taken, left alone**: a file with the new name already exists.
+3. **Press Rename.** Only the files marked Ready are renamed. Nothing is ever overwritten.
+4. **Changed your mind?** Press **Undo** to put the names back.
+
+Tick **Add zeros in front** to get `01`, `02` … `12` instead of `1`, `2` … `12`, so every app lists them in the right order.
+
 ## What it does
 
 - Takes the number in the brackets and makes it the whole name: `photo (12).jpg` → `12.jpg`, `(7).png` → `7.png`
@@ -32,8 +49,14 @@ Drop the files in and check the preview. Then press **Rename**. If something loo
 
 1. Download this repo (green **Code** button → **Download ZIP**) and unzip it.
 2. Double-click `Install Tidy Tide.bat`.
-3. Read the licence in the window that opens, then click **Install**.
+3. The installer walks you through three short steps: **Welcome → Licence → Done**. Click **Install** on the licence page.
 4. Open Tidy Tide from the desktop icon or the Start menu.
+
+<p align="center">
+  <img src="assets/screenshots/installer-welcome.png" width="32%" alt="Installer, step 1: Welcome">
+  <img src="assets/screenshots/installer-licence.png" width="32%" alt="Installer, step 2: Licence">
+  <img src="assets/screenshots/installer-done.png" width="32%" alt="Installer, step 3: Done">
+</p>
 
 If Windows shows "Windows protected your PC", click **More info** → **Run anyway**. Windows shows this for scripts that come from the internet.
 
@@ -55,6 +78,7 @@ app/
   setup.ps1      installs or uninstalls it (copies to %LOCALAPPDATA%\TidyTide and makes shortcuts)
   TidyTide.ico   icon
 website/         the project website (static HTML, deployed on Vercel)
+assets/screenshots/  screenshots used in this README
 tools/
   make_icon.py   redraws the icon (needs Python + Pillow)
 ```

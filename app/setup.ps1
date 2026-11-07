@@ -184,7 +184,7 @@ function New-Page {
 
 # ---------- install pages ----------
 $pgWelcome = New-Page
-$pgWelcome.Controls.Add((New-Label "Tidy Tide turns  photo (12).jpg  into  12.jpg. Setup takes a few seconds and doesn't need administrator rights." 30 2 580 46 $fBody $cSoft $cBg))
+$pgWelcome.Controls.Add((New-Label "Tidy Tide turns  1 (12).jpg  into  12.jpg. Setup takes a few seconds and doesn't need administrator rights." 30 2 580 46 $fBody $cSoft $cBg))
 $cardWelcome = Add-Card $pgWelcome 22 52 596 156
 $cardWelcome.Controls.Add((New-Label 'What setup will do' 22 18 400 24 $fBodyBold $cDeep $cCard))
 Add-CardLine $cardWelcome $CHECK $cTeal 'Copy Tidy Tide to your user folder  (AppData\Local\TidyTide)' 54

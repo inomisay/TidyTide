@@ -4,7 +4,7 @@
 
 <h1 align="center">Tidy Tide</h1>
 
-<p align="center">A small Windows app that turns <code>photo (12).jpg</code> into <code>12.jpg</code>.</p>
+<p align="center">A small Windows app that turns <code>1 (1).jpg</code>, <code>1 (2).jpg</code> … into <code>1.jpg</code>, <code>2.jpg</code> …</p>
 
 <p align="center">
   <a href="https://tidytide.vercel.app"><b>Website</b></a> ·
@@ -15,12 +15,12 @@
 
 ---
 
-When you select a bunch of files in Windows and rename them all at once, Windows names them `photo (1)`, `photo (2)`, `photo (3)` and so on. If you just want `1`, `2`, `3`, you end up fixing every name by hand. Tidy Tide does that for you.
+When you select a bunch of photos in Windows, press **F2** and type `1`, Windows names them `1 (1)`, `1 (2)`, `1 (3)` and so on. If you just want `1`, `2`, `3`, you end up fixing every name by hand. Tidy Tide does that for you.
 
 Drop the files in and check the preview. Then press **Rename**. If something looks wrong, press **Undo**.
 
 <p align="center">
-  <img src="assets/screenshots/app.png" width="560" alt="Tidy Tide showing a preview: Summer 2026 (1).jpg becomes 01.jpg, Summer 2026 (2).jpg becomes 02.jpg, and so on, each marked Ready">
+  <img src="assets/screenshots/app.png" width="560" alt="Tidy Tide showing a preview: 1 (1).jpg becomes 1.jpg, 1 (2).jpg becomes 2.jpg, and so on, each marked Ready">
 </p>
 
 ## How it works
@@ -32,7 +32,7 @@ Drop the files in and check the preview. Then press **Rename**. If something loo
    - **Same number twice**: left alone, because two files would get the same new name.
    - **Name already taken**: left alone, because a file with the new name already exists.
 
-   <img src="assets/screenshots/app-statuses.png" width="480" alt="Tidy Tide list showing Ready files next to files marked Same number twice and No (number)">
+   <img src="assets/screenshots/app-statuses.png" width="480" alt="Tidy Tide list: 1 (1).jpg to 1 (3).jpg are Ready; 1 (4).jpg and beach (4).jpg are Same number twice; 1 (5).jpg is Name already taken because 5.jpg exists; notes.txt has No (number)">
 3. **Press Rename.** Only the files marked Ready are renamed. Nothing is ever overwritten.
 4. **Changed your mind?** Press **Undo** to put the names back.
 
@@ -40,7 +40,7 @@ Tick **Add zeros in front** to get `01`, `02` … `12` instead of `1`, `2` … `
 
 ## What it does
 
-- Takes the number in the brackets and makes it the whole name: `photo (12).jpg` → `12.jpg`, `(7).png` → `7.png`
+- Takes the number in the brackets and makes it the whole name: `1 (12).jpg` → `12.jpg`. Any name works: `photo (7).png` → `7.png`, `(3).png` → `3.png`
 - Shows every change before it happens
 - Can add zeros in front (`01`, `02` … `10`) so every app sorts the files in the right order
 - Leaves a file alone if it has no number in brackets, if two files would end up with the same name, or if the new name is already taken. It never overwrites anything.

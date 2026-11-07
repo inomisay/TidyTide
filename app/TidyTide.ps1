@@ -1,5 +1,5 @@
 # Tidy Tide
-# Turns "photo (12).jpg" or "(12).jpg" into "12.jpg".
+# Turns "1 (12).jpg", "photo (12).jpg" or "(12).jpg" into "12.jpg".
 
 param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Paths)
 
@@ -200,7 +200,7 @@ $header.Add_Paint({
     $g.InterpolationMode = 'HighQualityBicubic'
     if ($logo) { $g.DrawImage($logo, (P 16), (P 15), (P 32), (P 32)) }
     [System.Windows.Forms.TextRenderer]::DrawText($g, 'Tidy Tide', $fAppTitle, (New-Object System.Drawing.Point((P 56), (P 11))), $cInk)
-    [System.Windows.Forms.TextRenderer]::DrawText($g, 'Turns  photo (12).jpg  into  12.jpg', $fAppSub, (New-Object System.Drawing.Point((P 57), (P 34))), $cSoft)
+    [System.Windows.Forms.TextRenderer]::DrawText($g, 'Turns  1 (12).jpg  into  12.jpg', $fAppSub, (New-Object System.Drawing.Point((P 57), (P 34))), $cSoft)
 })
 $btnFiles  = New-PillButton '+  Add files'  'accent' 98  32
 $btnFolder = New-PillButton '+  Add folder' 'soft'   108 32
